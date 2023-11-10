@@ -21,5 +21,5 @@ pub struct Instruction<'a> {
     pub mnemonic: &'a str,
     pub mode: AddressingMode,
     pub cycles: u8,
-    pub extra_cycle: bool
+    pub extra_cycle: bool // Adds extra cycle if page boundary is crossed
 }

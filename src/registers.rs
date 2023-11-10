@@ -1,22 +1,22 @@
 #[allow(non_snake_case)]
 #[derive(Default)]
 pub struct Flags {
-    pub C: bool,
-    pub Z: bool,
-    pub I: bool,
-    pub D: bool,
-    pub B: bool,
-    pub V: bool,
-    pub N: bool
+    pub C: bool, // Carry Flag
+    pub Z: bool, // Zero Flag
+    pub I: bool, // Interrupt Disable
+    pub D: bool, // Decimal Mode
+    pub B: bool, // Break Command
+    pub V: bool, // Overflow Flag
+    pub N: bool  // Negative Flag
 }
 
 #[allow(non_snake_case)]
 #[derive(Default)]
 pub struct Registers {
-    pub X: u8,
-    pub Y: u8,
-    pub Pc: u8,
-    pub Acc: u16,
+    pub X: u8,      // X Index Register
+    pub Y: u8,      // Y Index Register
+    pub Pc: u8,     // Program Counter
+    pub Acc: u16,   // Accumulator
     pub flags: Flags
 }
 
