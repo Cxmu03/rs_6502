@@ -1,4 +1,3 @@
-
 pub enum AddressingMode {
     Accumulator, // Acc, 1 byte
     Immediate,   // 8 bit operand, 1 byte
@@ -22,4 +21,16 @@ pub struct Instruction<'a> {
     pub mode: AddressingMode,
     pub cycles: u8,
     pub extra_cycle: bool // Adds extra cycle if page boundary is crossed
+}
+
+impl Instruction<'_> {
+    pub fn invalid<'a>(opcode: u8) -> Instruction<'a> {
+        Instruction {
+            opcode,
+            mnemonic: "Invalid",
+            mode: AddressingMode::Null,
+            cycles: 0,
+            extra_cycle: false
+        }
+    }
 }
