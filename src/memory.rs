@@ -15,7 +15,10 @@ impl Memory {
     }
 
     pub fn read_short(&self, address: u16) -> u16 {
-        ((self.data[(address + 1) as usize] as u16) << 8) | (self.data[address as usize] as u16)  
+        let upper = self.read_byte(address + 1) as u16;
+        let lower = self.read_byte(address) as u16;
+
+        (upper << 8) | lower
     }
 
     pub fn write_byte(&mut self, address: u16, value: u8) -> Result<(), Error> {
