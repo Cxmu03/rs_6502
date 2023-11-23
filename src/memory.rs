@@ -1,67 +1,53 @@
-use anyhow::{Result, Error, anyhow};
+pub trait ByteData<const N: usize>: Copy {
+    fn from_bytes(bytes: [u8; N]) -> Self;
+    fn to_bytes(self) -> [u8; N];
+}
+
+impl ByteData<1> for u8 {
+    fn from_bytes(bytes: [u8; 1]) -> Self {
+        bytes[0]
+    }
+
+    fn to_bytes(self) -> [u8; 1] {
+        [self]
+    }
+}
+
+impl ByteData<2> for u16 {
+    fn from_bytes(bytes: [u8; 2]) -> Self {
+        ((bytes[1] as u16) << 8) | bytes[0] as u16
+    }
+
+    fn to_bytes(self) -> [u8; 2] {
+        [(self & 0xFF) as u8, (self >> 8) as u8]
+    }
+}
 
 pub struct Memory {
-    pub sp: u16,      // Stack pointer
     data: [u8; 65536] // 64kb of ram
 }
 
 impl Memory {
-    pub fn address_in_rom(&self, address: u16) -> bool {
-        false
-    }
-        
-    pub fn read_byte(&self, address: u16) -> u8 {
-        self.data[address as usize]
-    }
+    pub fn is_valid_address(address: u16) -> bool {
+        return address < u16::MAX; 
+    } 
 
-    pub fn read_short(&self, address: u16) -> u16 {
-        let upper = self.read_byte(address + 1) as u16;
-        let lower = self.read_byte(address) as u16;
-
-        (upper << 8) | lower
-    }
-
-    pub fn write_byte(&mut self, address: u16, value: u8) -> Result<(), Error> {
-        if self.address_in_rom(address) {
-            return Err(anyhow!("Trying to access ROM"));
+    pub fn read<T: ByteData<N>, const N: usize>(&self, address: u16) -> T {
+        let end_address = address as usize + N;
+        if !Memory::is_valid_address(address) {
+            panic!("Invalid address");
         }
 
-        self.data[address as usize] = value;
-        Ok(())
+        T::from_bytes(self.data[address as usize..end_address].try_into().expect("must be of size N"))
     }
-
-    pub fn write_short(&mut self, address: u16, value: u16) -> Result<(), Error> {
-        if self.address_in_rom(address) {
-            return Err(anyhow!("Trying to access ROM"));
+    
+    pub fn write<T: ByteData<N>, const N: usize>(&mut self, address: u16, t: T) {
+        let end_address = address as usize + N;
+        if Memory::is_valid_address(address) {
+            panic!("Invalid address");
         }
 
-        self.data[address as usize] = (value & 0xFF) as u8;
-        self.data[(address + 1) as usize] =  (value >> 8) as u8;
-        Ok(())
-    }
-
-    pub fn push_byte(&mut self, value: u8) {
-        self.sp -= 1;
-        self.write_byte(self.sp, value).expect("Stack is going into ROM, aborting");
-    }
-
-    pub fn push_short(&mut self, value: u16) {
-        self.sp -= 2;
-        self.write_short(self.sp, value).expect("Stack is going into ROM, aborting");
-    }
-
-    pub fn pop_byte(&mut self, address: u16) -> u8 {
-        let value = self.read_byte(address);
-        self.sp += 1;
-        
-        value
-    }
-
-    pub fn pop_short(&mut self, address: u16) -> u16 {
-        let value = self.read_short(address);
-        self.sp += 2;
-
-        value
-
+        self.data[(address as usize)..end_address].copy_from_slice(&t.to_bytes());
     }
 }
+
