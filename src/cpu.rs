@@ -2,7 +2,7 @@ use crate::registers::Registers;
 use crate::memory::{ByteData, DefaultMemory};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::instruction::{Instruction, AddressingMode};
-use crate::util::ToI8;
+use crate::util::FromTwosComplementBits;
 
 pub struct Cpu {
     pub registers: Registers,
@@ -81,7 +81,7 @@ impl Cpu {
                 Some(indirect_address)
             }
             AddressingMode::Relative => {
-                let offset: i8 = self.read_address::<u8, 1>().to_i8();
+                let offset: i8 = i8::from_twos_complement_bits(self.read_address::<u8, 1>());
 
                 Some(self.registers.Pc.wrapping_add_signed(offset.into()))
             }
