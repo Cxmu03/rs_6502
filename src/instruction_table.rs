@@ -8,7 +8,7 @@ macro_rules! instruction_table {
     }
 }
 
-const INSTRUCTIONS: &'static [Instruction] = instruction_table! {
+pub const INSTRUCTIONS: &'static [Instruction] = instruction_table! {
     0x00, "BRK", AddressingMode::Implied, 7, false
 };
 

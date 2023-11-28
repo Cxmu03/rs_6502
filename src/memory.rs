@@ -23,18 +23,24 @@ impl ByteData<2> for u16 {
     }
 }
 
-pub struct Memory {
-    data: [u8; 65536] // 64kb of ram
+pub struct DefaultMemory {
+    data: [u8; 0x10000] // 64kb of ram
 }
 
-impl Memory {
+impl DefaultMemory {
+    pub fn new() -> DefaultMemory {
+        DefaultMemory {
+            data: [0; 0x10000]
+        }
+    }
+
     pub fn is_valid_address(address: u16) -> bool {
         return address < u16::MAX; 
     } 
 
     pub fn read<T: ByteData<N>, const N: usize>(&self, address: u16) -> T {
         let end_address = address as usize + N;
-        if !Memory::is_valid_address(address) {
+        if !DefaultMemory::is_valid_address(address) {
             panic!("Invalid address");
         }
 
@@ -43,7 +49,7 @@ impl Memory {
     
     pub fn write<T: ByteData<N>, const N: usize>(&mut self, address: u16, t: T) {
         let end_address = address as usize + N;
-        if Memory::is_valid_address(address) {
+        if !DefaultMemory::is_valid_address(address) {
             panic!("Invalid address");
         }
 
