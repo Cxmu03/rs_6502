@@ -14,6 +14,26 @@ pub enum AddressingMode {
     Implied,     // No operand
 }
 
+impl AddressingMode {
+    pub const fn operand_size(&self) -> u16 {
+        match &self {
+            AddressingMode::Accumulator => 0,
+            AddressingMode::Immediate => 1,
+            AddressingMode::Absolute => 2,
+            AddressingMode::ZeroPage => 1,
+            AddressingMode::ZeroPageX => 1,
+            AddressingMode::ZeroPageY => 1,
+            AddressingMode::AbsoluteX => 2,
+            AddressingMode::AbsoluteY => 2,
+            AddressingMode::Relative => 1,
+            AddressingMode::Indirect => 2,
+            AddressingMode::IndirectX => 2,
+            AddressingMode::IndirectY => 2,
+            AddressingMode::Implied => 0
+        }
+    }
+}
+
 pub enum InstructionType {
     ADC, AND, ASL, BCC, BCS, BEQ, BIT, 
     BMI, BNE, BPL, BRK, BVC, BVS, CLC, 
