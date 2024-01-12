@@ -12,24 +12,34 @@ pub enum AddressingMode {
     IndirectX,   // todo
     IndirectY,   // todo
     Implied,     // No operand
-    Null         // Invalid Instruction
 }
 
-pub struct Instruction<'a> {
+pub enum InstructionType {
+    ADC, AND, ASL, BCC, BCS, BEQ, BIT, 
+    BMI, BNE, BPL, BRK, BVC, BVS, CLC, 
+    CLD, CLI, CLV, CMP, CPX, CPY, DEC, 
+    DEX, DEY, EOR, INC, INX, INY, JMP, 
+    JSR, LDA, LDX, LDY, LSR, NOP, ORA, 
+    PHA, PHP, PLA, PLP, ROL, ROR, RTI, 
+    RTS, SBC, SEC, SED, SEI, STA, STX, 
+    STY, TAX, TAY, TSX, TXA, TXS, TYA,
+}
+
+pub struct Instruction {
     pub opcode: u8,
-    pub mnemonic: &'a str,
+    pub instruction_type: InstructionType,
     pub mode: AddressingMode,
     pub cycles: u8,
     pub extra_cycle: bool // Adds extra cycle if page boundary is crossed
 }
 
-impl Instruction<'_> {
-    pub fn invalid<'a>(opcode: u8) -> Instruction<'a> {
+impl Instruction {
+    pub fn invalid(opcode: u8) -> Instruction {
         Instruction {
             opcode,
-            mnemonic: "Invalid",
-            mode: AddressingMode::Null,
-            cycles: 0,
+            instruction_type: InstructionType::NOP,
+            mode: AddressingMode::Implied,
+            cycles: 2,
             extra_cycle: false
         }
     }

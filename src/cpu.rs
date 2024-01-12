@@ -85,6 +85,9 @@ impl Cpu {
 
                 Some(self.registers.Pc.wrapping_add_signed(offset.into()))
             }
+            AddressingMode::Immediate => {
+                Some(self.memory.read::<u8, 1>(self.registers.Pc) as u16)
+            }
             _ => {
                 None
             }
@@ -101,6 +104,8 @@ impl Cpu {
         let operand = self.get_operand_for_instruction(current_instruction);
 
         self.execute_instruction(&current_instruction, operand); 
+
+        self.cycles += current_instruction.cycles as u32;
     }
 
     fn execute_instruction(&mut self, instruction: &Instruction, operand: Option<u16>) {
