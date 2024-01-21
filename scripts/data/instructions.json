@@ -1,0 +1,47 @@
+{
+  "addressing_modes": {
+    "impl": "Implied",
+    "abs": "Absolute",
+    "A": "Accumulator",
+    "#": "Immediate",
+    "ind": "Indirect",
+    "X,ind": "IndirectX",
+    "ind,Y": "IndirectY",
+    "zpg": "ZeroPage",
+    "abs,X": "AbsoluteX",
+    "abs,Y": "AbsoluteY",
+    "rel": "Relative",
+    "zpg,X": "ZeroPageX",
+    "zpg,Y": "ZeroPageY"
+  },
+  "invalid_opcodes": [
+    "02", "03", "04", "07", "0B", "0C", "0F", "12", "13", "14",
+    "17", "1A", "1B", "1C", "1F", "22", "23", "24", "27", "2B",
+    "2F", "32", "33", "34", "37", "3A", "3B", "3C", "3F", "42",
+    "43", "44", "47", "4B", "4F", "52", "53", "54", "57", "5A",
+    "5B", "5C", "5F", "62", "63", "64", "67", "6B", "6F", "72",
+    "73", "74", "77", "7A", "7B", "7C", "7F", "80", "82", "83",
+    "87", "89", "8B", "8F", "92", "93", "97", "9B", "9C", "9E",
+    "9F", "A3", "A7", "AB", "AF", "B2", "B3", "B7", "BB", "BF",
+    "C2", "C3", "C7", "CB", "CF", "D2", "D3", "D4", "D7", "DA",
+    "DB", "DC", "DF", "E2", "E3", "E7", "EB", "EF", "F2", "F3",
+    "F4", "F7", "FA", "FB", "FC", "FF"
+
+  ],
+  "instructions": [
+    "BRK impl", "ORA X,ind", "ORA zpg", "ASL zpg", "PHP impl", "ORA #", "ASL A", "ORA abs", "ASL abs", "BPL rel",
+    "ORA ind,Y", "ORA zpg,X", "ASL zpg,X", "CLC impl", "ORA abs,Y", "ORA abs,X", "ASL abs,X", "JSR abs", "AND X,ind", "BIT zpg",
+    "AND zpg", "ROL zpg", "PLP impl", "AND #", "ROL A", "BIT abs", "AND abs", "ROL abs", "BMI rel", "AND ind,Y",
+    "AND zpg,X", "SEC impl", "AND abs,Y", "AND abs,X", "ROL abs,X", "RTI impl", "EOR X,ind", "EOR zpg", "LSR zpg", "PHA impl",
+    "EOR #", "LSR A", "JMP abs", "EOR abs", "LSR abs", "BVC rel", "EOR ind,Y", "EOR zpg,X", "LSR zpg,X", "CLI impl",
+    "EOR abs,Y", "EOR abs,X", "LSR abs,X", "RTS impl", "ADC X,ind", "ADC zpg", "ROR zpg", "PLA impl", "ADC #", "ROR A",
+    "JMP ind", "ADC abs", "ROR abs", "BVS rel", "ADC ind,Y", "ADC zpg,X", "ROR zpg,X", "SEI impl", "ADC abs,Y", "ADC abs,X",
+    "ROR abs,X", "STA X,ind", "STY zpg", "STA zpg", "STX zpg", "DEY impl", "TXA impl", "STY abs", "STA abs", "STX abs",
+    "BCC rel", "STA ind,Y", "STY zpg,X", "STA zpg,X", "STX zpg,Y", "TYA impl", "STA abs,Y", "TXS impl", "STA abs,X", "LDY #",
+    "LDA X,ind", "LDX #", "LDY zpg", "LDA zpg", "LDX zpg", "TAY impl", "LDA #", "TAX impl", "LDY abs", "LDA abs",
+    "LDX abs", "CXS rel", "LDA ind,Y", "LDY zpg,X", "LDA zpg,X", "LDX zpg,Y", "CLV impl", "LDA abs,Y", "TSX impl", "LDY abs,X",
+    "LDA abs,X", "LDX abs,Y", "CPY #", "CMP X,ind", "CPY zpg", "CMP zpg", "DEC zpg", "INY impl", "CMP #", "DEX impl",
+    "CPY abs", "CMP abs", "DEC abs", "BNE rel", "CMP ind,Y", "CMP zpg,X", "DEC zpg,X", "CLD impl", "CMP abs,Y", "CMP abs,X",
+    "DEC abs,X", "CPX #", "SBC X,ind", "CPX zpg", "SBC zpg", "INC zpg", "INX impl", "SBC #", "NOP impl", "CPX abs",
+    "SBC abs", "INC abs", "BEQ rel", "SBC ind,Y", "SBC zpg,X", "INC zpg,X", "SED impl", "SBC abs,Y", "SBC abs,X", "INC abs,X"]
+}
