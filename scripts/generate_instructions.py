@@ -25,12 +25,10 @@ def generate_instruction_table():
     current_valid_index = 0
     for i in range(0x100):
         if f"{i:0>2X}" in invalid_opcodes:
-            current_instruction = invalid(i)
+            yield invalid(i)
         else:
-            current_instruction = valid(i, instruction_list[current_valid_index])
+            yield valid(i, instruction_list[current_valid_index])
             current_valid_index += 1
-
-        yield current_instruction
 
 def main():
     with open("instruction_table.txt", "w") as f:
