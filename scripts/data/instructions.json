@@ -39,7 +39,7 @@
     "ROR abs,X", "STA X,ind", "STY zpg", "STA zpg", "STX zpg", "DEY impl", "TXA impl", "STY abs", "STA abs", "STX abs",
     "BCC rel", "STA ind,Y", "STY zpg,X", "STA zpg,X", "STX zpg,Y", "TYA impl", "STA abs,Y", "TXS impl", "STA abs,X", "LDY #",
     "LDA X,ind", "LDX #", "LDY zpg", "LDA zpg", "LDX zpg", "TAY impl", "LDA #", "TAX impl", "LDY abs", "LDA abs",
-    "LDX abs", "CXS rel", "LDA ind,Y", "LDY zpg,X", "LDA zpg,X", "LDX zpg,Y", "CLV impl", "LDA abs,Y", "TSX impl", "LDY abs,X",
+    "LDX abs", "BCS rel", "LDA ind,Y", "LDY zpg,X", "LDA zpg,X", "LDX zpg,Y", "CLV impl", "LDA abs,Y", "TSX impl", "LDY abs,X",
     "LDA abs,X", "LDX abs,Y", "CPY #", "CMP X,ind", "CPY zpg", "CMP zpg", "DEC zpg", "INY impl", "CMP #", "DEX impl",
     "CPY abs", "CMP abs", "DEC abs", "BNE rel", "CMP ind,Y", "CMP zpg,X", "DEC zpg,X", "CLD impl", "CMP abs,Y", "CMP abs,X",
     "DEC abs,X", "CPX #", "SBC X,ind", "CPX zpg", "SBC zpg", "INC zpg", "INX impl", "SBC #", "NOP impl", "CPX abs",

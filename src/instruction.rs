@@ -1,3 +1,7 @@
+use crate::cpu::{Cpu, Operand};
+
+type InstructionFn = fn(&mut Cpu, Option<Operand>);
+
 pub enum AddressingMode {
     Accumulator, // Acc, 1 byte
     Immediate,   // 8 bit operand, 1 byte
@@ -50,7 +54,8 @@ pub struct Instruction {
     pub instruction_type: InstructionType,
     pub mode: AddressingMode,
     pub cycles: u8,
-    pub extra_cycle: bool // Adds extra cycle if page boundary is crossed
+    pub extra_cycle: bool, // Adds extra cycle if page boundary is crossed,
+    pub fun: InstructionFn
 }
 
 impl Instruction {
@@ -60,7 +65,8 @@ impl Instruction {
             instruction_type: InstructionType::NOP,
             mode: AddressingMode::Implied,
             cycles: 2,
-            extra_cycle: false
+            extra_cycle: false,
+            fun: Cpu::nop
         }
     }
 }

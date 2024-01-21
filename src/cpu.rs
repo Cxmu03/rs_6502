@@ -16,7 +16,7 @@ macro_rules! SomeByte {
     }
 }
 
-enum Operand {
+pub(crate) enum Operand {
     Byte(u8),
     Short(u16)
 }
@@ -126,13 +126,13 @@ impl Cpu {
 
         self.registers.Pc += current_instruction.mode.operand_size();
 
-        self.execute_instruction(&current_instruction, operand); 
+        self.execute_instruction(&current_instruction, operand);
 
         self.cycles += current_instruction.cycles as u32;
     }
 
     fn execute_instruction(&mut self, instruction: &Instruction, operand: Option<Operand>) {
-        todo!()
+        (instruction.fun)(self, operand);
     }
 
     fn push_byte(&mut self, value: u8) {
@@ -168,5 +168,227 @@ impl Cpu {
 
         value
 
+    }
+
+    pub fn nop(&mut self, operand: Option<Operand>) {}
+
+    pub fn brk(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn ora(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn asl(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn php(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bpl(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn clc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn jsr(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn and(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bit(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn rol(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn plp(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bmi(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sec(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn rti(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn eor(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn lsr(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn pha(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn jmp(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bvc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cli(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn rts(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn adc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn ror(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn pla(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bvs(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sei(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sta(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sty(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn stx(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn dey(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn txa(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bcc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn tya(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn txs(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn ldy(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn lda(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn ldx(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn tay(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn tax(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cxs(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn clv(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn tsx(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cpy(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cmp(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn dec(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn iny(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn dex(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn bne(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cld(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn cpx(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sbc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn inc(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn inx(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn beq(&mut self, operand: Option<Operand>) {
+        todo!()
+    }
+
+    pub fn sed(&mut self, operand: Option<Operand>) {
+        todo!()
     }
 }
