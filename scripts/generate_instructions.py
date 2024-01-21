@@ -30,7 +30,22 @@ def generate_instruction_table():
             yield valid(i, instruction_list[current_valid_index])
             current_valid_index += 1
 
+def generate_member_fns():
+    mnemonics = set()
+
+    for instruction in instruction_list:
+        mnemonic, _ = instruction.split(" ")
+
+        if mnemonic not in mnemonics:
+            yield f"pub fn {mnemonic.lower()}(&mut self, operand: Option<Operand>) {{\n\ttodo!()\n}}\n\n"
+
+        mnemonics.add(mnemonic)
+
 def main():
+    with open("instruction_functions.txt", "w") as f:
+        for instruction_fn in generate_member_fns():
+            f.write(instruction_fn)
+
     with open("instruction_table.txt", "w") as f:
         for instruction in generate_instruction_table():
             # ugly ass hack
