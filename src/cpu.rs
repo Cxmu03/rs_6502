@@ -3,6 +3,7 @@ use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
 use crate::instruction::{Instruction, AddressingMode};
 use crate::util::FromTwosComplementBits;
+use crate::default_memory::DefaultMemory;
 
 macro_rules! SomeShort {
     ($short: expr) => {
@@ -21,17 +22,17 @@ pub(crate) enum Operand {
     Short(u16)
 }
 
-pub struct Cpu {
+pub struct Cpu<Memory=DefaultMemory> {
     pub registers: Registers,
-    pub memory: Box<dyn Memory>,
+    pub memory: Memory,
     pub cycles: u32
 }
 
 impl Cpu {
-    pub fn new(memory: Box<dyn Memory>) -> Cpu {
+    pub fn new() -> Cpu {
         let mut cpu = Cpu {
             registers: Registers::new(),
-            memory: memory,
+            memory: Memory::new(),
             cycles: 0
         };
 

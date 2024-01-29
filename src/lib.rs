@@ -1,5 +1,6 @@
 pub mod cpu;
-mod memory;
+pub mod memory;
+pub mod default_memory;
 mod instruction;
 mod registers;
 mod instruction_table;
