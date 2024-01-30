@@ -1,3 +1,7 @@
+use std::fmt::{Debug, Display, self, Formatter};
+
+use indent::indent_all_by;
+
 use crate::registers::Registers;
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
@@ -26,6 +30,22 @@ pub struct Cpu<Memory=DefaultMemory> {
     pub registers: Registers,
     pub memory: Memory,
     pub cycles: u32
+}
+
+impl Display for Cpu {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Cpu:\n")?;
+        write!(f, "    cycles = {}\n\n", self.cycles);
+        
+        write!(f, "{}", indent_all_by(4, self.registers.to_string()));
+        Ok(())
+    }
+}
+
+impl Debug for Cpu {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
 }
 
 impl Cpu {

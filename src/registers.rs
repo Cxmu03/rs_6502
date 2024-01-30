@@ -1,15 +1,9 @@
-/*#[allow(non_snake_case)]
-#[derive(Default)]
-pub struct Flags {
-    pub C: bool, // Carry Flag
-    pub Z: bool, // Zero Flag
-    pub I: bool, // Interrupt Disable
-    pub D: bool, // Decimal Mode
-    pub B: bool, // Break Command
-    pub V: bool, // Overflow Flag
-    pub N: bool  // Negative Flag
-}*/
+use std::fmt::{Display, Debug, Formatter, self};
+use std::convert::TryFrom;
 
+use indent::indent_all_by;
+
+#[derive(Debug, Copy, Clone)]
 pub enum Flag {
     Negative = 7,
     Overflow = 6,
@@ -20,11 +14,52 @@ pub enum Flag {
     Carry = 0
 }
 
+impl TryFrom<u8> for Flag {
+    type Error = String;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Flag::Carry),
+            1 => Ok(Flag::Zero),
+            2 => Ok(Flag::InterruptDisable),
+            3 => Ok(Flag::Decimal),
+            4 => Ok(Flag::B),
+            5 => Err(String::from("Flagbit 6 is always unused")),
+            6 => Ok(Flag::Overflow),
+            7 => Ok(Flag::Negative),
+            _ => Err(format!("{value} is not a valid flagbit index"))
+        }
+    }
+}
+
+impl fmt::Display for Flag {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 pub struct Flags(u8);
 
 impl Default for Flags {
     fn default() -> Flags {
         Flags(0b00100100) 
+    }
+}
+
+impl Display for Flags {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for i in (0_u8..=7).rev() {
+            if let Ok(flag) = Flag::try_from(i) {
+                write!(f, "{:<16} = {}\n", flag.to_string(), self.get(flag))?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Debug for Flags {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }
 
@@ -63,6 +98,28 @@ pub struct Registers {
     pub Sp: u16,    // Stack Pointer
     pub Acc: u8,    // Accumulator
     pub flags: Flags
+}
+
+impl Display for Registers {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Registers:\n")?;
+        write!(f, "    X   = 0x{0:02X}   = {0} \n", self.X)?;
+        write!(f, "    Y   = 0x{0:02X}   = {0}\n", self.Y)?;
+        write!(f, "    PC  = 0x{0:04X} = {0}\n", self.Pc)?;
+        write!(f, "    SP  = 0x{0:04X} = {0}\n", self.Sp)?;
+        write!(f, "    ACC = 0x{0:02X}   = {0}\n\n", self.Acc)?;
+
+        write!(f, "Flags:\n")?;
+        write!(f, "{}", indent_all_by(4, self.flags.to_string()))?;
+
+        Ok(())
+    }
+}
+
+impl Debug for Registers {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
 }
 
 impl Flags {
