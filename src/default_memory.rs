@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use anyhow::{Result, Error};
+use anyhow::{Result, Error, anyhow};
 
 use crate::memory::Memory;
 
@@ -41,6 +41,13 @@ impl Memory for DefaultMemory {
         let len = file.metadata()?.len();
         let start = 0x200 as usize;
         let end = start + len as usize;
+
+        // Vectors start at 0xFFFA and should not be overwritten with program code
+        let max_binary_size: u64 = (0xFFFA_usize - start) as u64;
+
+        if len > max_binary_size {
+            return Err(anyhow!("Binary size ({len}) exceeds maximum size of {max_binary_size}"));
+        }
 
         let read_size = file.read(&mut self.data[start..end])?;
 
