@@ -49,7 +49,7 @@ impl Cpu {
     }
 
     fn init_registers(&mut self) {
-        self.registers.Pc = self.memory.read_short(0xFFFD);
+        self.registers.Pc = self.memory.read_short(0xFFFC);
         self.registers.Sp = 0x1FF;
     }
 
