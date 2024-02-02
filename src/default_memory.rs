@@ -9,6 +9,22 @@ pub struct DefaultMemory {
     data: [u8; 1 << 16]
 }
 
+impl DefaultMemory {
+    fn verify_executable(content_length: usize) -> Result<(usize, usize)> {
+        let start = 0x200 as usize;
+        let end = start + content_length;
+
+        // Vectors start at 0xFFFA and should not be overwritten with program code
+        let max_binary_size = 0xFFFA_usize - start;
+
+        if content_length > max_binary_size {
+            return Err(anyhow!("Binary size ({content_length}) exceeds maximum size of {max_binary_size}"));
+        }
+
+        Ok((start, end))
+    }
+}
+
 impl Memory for DefaultMemory {
     fn new() -> Self {
         let mut data: [u8; 1 << 16] = [0u8; 1 << 16];
@@ -35,22 +51,21 @@ impl Memory for DefaultMemory {
         self.data[address as usize + 1] = (value >> 8) as u8;
     }
 
-    fn load_executable(&mut self, name: &str) -> Result<usize>{
+    fn load(&mut self, executable: &[u8]) -> Result<u16> {
+        let (start, end) = Self::verify_executable(executable.len())?;
+
+        self.data[start..end].copy_from_slice(executable);
+
+        Ok(start as u16)
+    }
+
+    fn load_from_file(&mut self, name: &str) -> Result<u16>{
         let mut file = File::open(name)?;
 
-        let len = file.metadata()?.len();
-        let start = 0x200 as usize;
-        let end = start + len as usize;
+        let (start, end) = Self::verify_executable(file.metadata()?.len() as usize)?;
 
-        // Vectors start at 0xFFFA and should not be overwritten with program code
-        let max_binary_size: u64 = (0xFFFA_usize - start) as u64;
+        file.read(&mut self.data[start..end])?;
 
-        if len > max_binary_size {
-            return Err(anyhow!("Binary size ({len}) exceeds maximum size of {max_binary_size}"));
-        }
-
-        let read_size = file.read(&mut self.data[start..end])?;
-
-        Ok(read_size)
+        Ok(start as u16)
     }
 }
