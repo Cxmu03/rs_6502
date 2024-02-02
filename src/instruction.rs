@@ -38,6 +38,7 @@ impl AddressingMode {
     }
 }
 
+#[derive(Debug)]
 pub enum InstructionType {
     ADC, AND, ASL, BCC, BCS, BEQ, BIT, 
     BMI, BNE, BPL, BRK, BVC, BVS, CLC, 

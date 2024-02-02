@@ -1,6 +1,8 @@
 use std::fmt::{Debug, Display, self, Formatter};
 
 use indent::indent_all_by;
+use anyhow::{Result};
+use log;
 
 use crate::registers::Registers;
 use crate::instruction_table::INSTRUCTIONS;
@@ -21,6 +23,7 @@ macro_rules! SomeByte {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum Operand {
     Byte(u8),
     Short(u16)
@@ -68,9 +71,29 @@ impl Cpu {
         self.cycles = 8;
     }
 
-    fn init_registers(&mut self) {
+    pub fn init_registers(&mut self) {
         self.registers.Pc = self.memory.read_short(0xFFFC);
         self.registers.Sp = 0x1FF;
+    }
+
+    pub fn load_executable(&mut self, bytes: &[u8]) -> Result<()> {
+        let start = self.memory.load(bytes)?;
+
+        self.set_reset_vector(start);
+
+        Ok(())
+    }
+
+    pub fn load_executable_from_file(&mut self, file: &str) -> Result<()> {
+        let start = self.memory.load_from_file(file)?;
+
+        self.set_reset_vector(start);
+
+        Ok(())
+    }
+
+    fn set_reset_vector(&mut self, address: u16) {
+        self.memory.write_short(0xFFFC, address);
     }
 
     fn read_current_byte(&self) -> u8 {
@@ -141,9 +164,12 @@ impl Cpu {
         let opcode: u8 = self.read_current_byte();
         let current_instruction = &INSTRUCTIONS[opcode as usize];
 
+
         self.registers.Pc += 1;
 
         let operand = self.get_operand_for_instruction(current_instruction);
+
+        log::debug!("Read instruction {:?} with opcode {:02X} and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, operand);
 
         self.registers.Pc += current_instruction.mode.operand_size();
 
