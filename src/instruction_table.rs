@@ -12,7 +12,7 @@ macro_rules! instruction_table {
 pub const INSTRUCTIONS: &'static [Instruction] = instruction_table! {
     0x00, InstructionType::BRK, AddressingMode::Implied, 0, false, Cpu::brk;
     0x01, InstructionType::ORA, AddressingMode::IndirectX, 0, false, Cpu::ora;
-    0x02, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;
+    0x02, InstructionType::KIL, AddressingMode::Implied, 0, false, Cpu::nop;
     0x03, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;
     0x04, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;
     0x05, InstructionType::ORA, AddressingMode::ZeroPage, 0, false, Cpu::ora;

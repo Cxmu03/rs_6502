@@ -227,6 +227,8 @@ impl Cpu {
         todo!()
     }
 
+    pub fn kil(&mut self, operand: Option<Operand>) { todo!() }
+
     pub fn asl(&mut self, operand: Option<Operand>) {
         todo!()
     }

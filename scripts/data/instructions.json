@@ -15,7 +15,7 @@
     "zpg,Y": "ZeroPageY"
   },
   "invalid_opcodes": [
-    "02", "03", "04", "07", "0B", "0C", "0F", "12", "13", "14",
+    "03", "04", "07", "0B", "0C", "0F", "12", "13", "14",
     "17", "1A", "1B", "1C", "1F", "22", "23", "24", "27", "2B",
     "2F", "32", "33", "34", "37", "3A", "3B", "3C", "3F", "42",
     "43", "44", "47", "4B", "4F", "52", "53", "54", "57", "5A",
@@ -29,7 +29,7 @@
 
   ],
   "instructions": [
-    "BRK impl", "ORA X,ind", "ORA zpg", "ASL zpg", "PHP impl", "ORA #", "ASL A", "ORA abs", "ASL abs", "BPL rel",
+    "BRK impl", "ORA X,ind", "KIL impl", "ORA zpg", "ASL zpg", "PHP impl", "ORA #", "ASL A", "ORA abs", "ASL abs", "BPL rel",
     "ORA ind,Y", "ORA zpg,X", "ASL zpg,X", "CLC impl", "ORA abs,Y", "ORA abs,X", "ASL abs,X", "JSR abs", "AND X,ind", "BIT zpg",
     "AND zpg", "ROL zpg", "PLP impl", "AND #", "ROL A", "BIT abs", "AND abs", "ROL abs", "BMI rel", "AND ind,Y",
     "AND zpg,X", "SEC impl", "AND abs,Y", "AND abs,X", "ROL abs,X", "RTI impl", "EOR X,ind", "EOR zpg", "LSR zpg", "PHA impl",
