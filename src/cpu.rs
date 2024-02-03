@@ -11,18 +11,6 @@ use crate::instruction::{Instruction, AddressingMode};
 use crate::util::FromTwosComplementBits;
 use crate::default_memory::DefaultMemory;
 
-macro_rules! SomeShort {
-    ($short: expr) => {
-        Some(Operand::Short($short))
-    }
-}
-
-macro_rules! SomeByte {
-    ($byte: expr) => {
-        Some(Operand::Byte($byte))
-    }
-}
-
 #[derive(Debug)]
 pub(crate) enum Operand {
     Byte(u8),
@@ -110,51 +98,68 @@ impl Cpu {
         zero_page_address.wrapping_add(register) as u16
     }
 
-    fn get_operand_for_instruction(&self, instruction: &Instruction) -> Option<Operand> {
+    fn get_operand_address(&self, instruction: &Instruction) -> Option<u16> {
         match instruction.mode {
             AddressingMode::Absolute => {
-                SomeShort!(self.read_current_short())
+                Some(self.read_current_short())
             } 
             AddressingMode::AbsoluteX => {
-                SomeShort!(self.read_current_short() + (self.registers.X as u16))
+                Some(self.read_current_short() + (self.registers.X as u16))
             }
             AddressingMode::AbsoluteY => {
-                SomeShort!(self.read_current_short() + (self.registers.Y as u16))
+                Some(self.read_current_short() + (self.registers.Y as u16))
             }
             AddressingMode::ZeroPage => {
-                SomeByte!(self.read_current_byte())
+                Some(self.read_current_byte() as u16)
             }
             AddressingMode::ZeroPageX => {
-                SomeShort!(self.indexed_zero_page(self.registers.X)) 
+                Some(self.indexed_zero_page(self.registers.X))
             }
             AddressingMode::ZeroPageY => {
-                SomeShort!(self.indexed_zero_page(self.registers.Y)) 
+                Some(self.indexed_zero_page(self.registers.Y))
             }
             AddressingMode::Indirect => {
                 let direct_address = self.memory.read_short(self.registers.Pc);
                 let indirect_address = self.memory.read_short(direct_address);
-                SomeShort!(indirect_address)
+                Some(indirect_address)
             }
             AddressingMode::IndirectX => {
                 let direct_address: u16 = self.read_current_short();
                 let indirect_address = direct_address + self.registers.X as u16;
-                SomeShort!(indirect_address)
+                Some(indirect_address)
             }
             AddressingMode::IndirectY => {
                 let direct_address: u16 = self.read_current_short();
                 let indirect_address = direct_address + self.registers.Y as u16;
-                SomeShort!(indirect_address)
+                Some(indirect_address)
             }
             AddressingMode::Relative => {
                 let offset: i8 = i8::from_twos_complement_bits(self.read_current_byte());
 
-                SomeShort!(self.registers.Pc.wrapping_add_signed(offset.into()))
+                Some(self.registers.Pc.wrapping_add_signed(offset.into()))
+            }
+            AddressingMode::Immediate | AddressingMode::Accumulator | AddressingMode::Implied => {
+                None
+            }
+        }
+    }
+
+    fn get_operand_value(&mut self, instruction: &Instruction) -> Option<u8> {
+        match instruction.mode {
+            AddressingMode::Implied => {
+                None
             }
             AddressingMode::Immediate => {
-                SomeByte!(self.memory.read_byte(self.registers.Pc))
+                Some(self.read_current_byte())
+            }
+            AddressingMode::Accumulator => {
+                Some(self.registers.Acc)
             }
             _ => {
-                None
+                // Previous arms prevent get_operand_address from returning None
+                let address = self.get_operand_address(instruction).unwrap();
+
+                Some(self.memory.read_byte(address))
             }
         }
     }
@@ -164,22 +169,21 @@ impl Cpu {
         let opcode: u8 = self.read_current_byte();
         let current_instruction = &INSTRUCTIONS[opcode as usize];
 
+        let operand = self.get_operand_value(current_instruction);
 
         self.registers.Pc += 1;
-
-        let operand = self.get_operand_for_instruction(current_instruction);
 
         log::debug!("Read instruction {:?} with opcode {:02X} and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, operand);
 
         self.registers.Pc += current_instruction.mode.operand_size();
 
-        self.execute_instruction(&current_instruction, operand);
+        self.execute_instruction(&current_instruction);
 
         self.cycles += current_instruction.cycles as u32;
     }
 
-    fn execute_instruction(&mut self, instruction: &Instruction, operand: Option<Operand>) {
-        (instruction.fun)(self, operand);
+    fn execute_instruction(&mut self, instruction: &Instruction) {
+        (instruction.fun)(self);
     }
 
     fn push_byte(&mut self, value: u8) {
@@ -217,227 +221,229 @@ impl Cpu {
 
     }
 
-    pub fn nop(&mut self, operand: Option<Operand>) {}
-
-    pub fn brk(&mut self, operand: Option<Operand>) {
+    pub fn brk(&mut self) {
         todo!()
     }
 
-    pub fn ora(&mut self, operand: Option<Operand>) {
+    pub fn ora(&mut self) {
         todo!()
     }
 
-    pub fn kil(&mut self, operand: Option<Operand>) { todo!() }
-
-    pub fn asl(&mut self, operand: Option<Operand>) {
+    pub fn kil(&mut self) {
         todo!()
     }
 
-    pub fn php(&mut self, operand: Option<Operand>) {
+    pub fn asl(&mut self) {
         todo!()
     }
 
-    pub fn bpl(&mut self, operand: Option<Operand>) {
+    pub fn php(&mut self) {
         todo!()
     }
 
-    pub fn clc(&mut self, operand: Option<Operand>) {
+    pub fn bpl(&mut self) {
         todo!()
     }
 
-    pub fn jsr(&mut self, operand: Option<Operand>) {
+    pub fn clc(&mut self) {
         todo!()
     }
 
-    pub fn and(&mut self, operand: Option<Operand>) {
+    pub fn jsr(&mut self) {
         todo!()
     }
 
-    pub fn bit(&mut self, operand: Option<Operand>) {
+    pub fn and(&mut self) {
         todo!()
     }
 
-    pub fn rol(&mut self, operand: Option<Operand>) {
+    pub fn bit(&mut self) {
         todo!()
     }
 
-    pub fn plp(&mut self, operand: Option<Operand>) {
+    pub fn rol(&mut self) {
         todo!()
     }
 
-    pub fn bmi(&mut self, operand: Option<Operand>) {
+    pub fn plp(&mut self) {
         todo!()
     }
 
-    pub fn sec(&mut self, operand: Option<Operand>) {
+    pub fn bmi(&mut self) {
         todo!()
     }
 
-    pub fn rti(&mut self, operand: Option<Operand>) {
+    pub fn sec(&mut self) {
         todo!()
     }
 
-    pub fn eor(&mut self, operand: Option<Operand>) {
+    pub fn rti(&mut self) {
         todo!()
     }
 
-    pub fn lsr(&mut self, operand: Option<Operand>) {
+    pub fn eor(&mut self) {
         todo!()
     }
 
-    pub fn pha(&mut self, operand: Option<Operand>) {
+    pub fn lsr(&mut self) {
         todo!()
     }
 
-    pub fn jmp(&mut self, operand: Option<Operand>) {
+    pub fn pha(&mut self) {
         todo!()
     }
 
-    pub fn bvc(&mut self, operand: Option<Operand>) {
+    pub fn jmp(&mut self) {
         todo!()
     }
 
-    pub fn cli(&mut self, operand: Option<Operand>) {
+    pub fn bvc(&mut self) {
         todo!()
     }
 
-    pub fn rts(&mut self, operand: Option<Operand>) {
+    pub fn cli(&mut self) {
         todo!()
     }
 
-    pub fn adc(&mut self, operand: Option<Operand>) {
+    pub fn rts(&mut self) {
         todo!()
     }
 
-    pub fn ror(&mut self, operand: Option<Operand>) {
+    pub fn adc(&mut self) {
         todo!()
     }
 
-    pub fn pla(&mut self, operand: Option<Operand>) {
+    pub fn ror(&mut self) {
         todo!()
     }
 
-    pub fn bvs(&mut self, operand: Option<Operand>) {
+    pub fn pla(&mut self) {
         todo!()
     }
 
-    pub fn sei(&mut self, operand: Option<Operand>) {
+    pub fn bvs(&mut self) {
         todo!()
     }
 
-    pub fn sta(&mut self, operand: Option<Operand>) {
+    pub fn sei(&mut self) {
         todo!()
     }
 
-    pub fn sty(&mut self, operand: Option<Operand>) {
+    pub fn sta(&mut self) {
         todo!()
     }
 
-    pub fn stx(&mut self, operand: Option<Operand>) {
+    pub fn sty(&mut self) {
         todo!()
     }
 
-    pub fn dey(&mut self, operand: Option<Operand>) {
+    pub fn stx(&mut self) {
         todo!()
     }
 
-    pub fn txa(&mut self, operand: Option<Operand>) {
+    pub fn dey(&mut self) {
         todo!()
     }
 
-    pub fn bcc(&mut self, operand: Option<Operand>) {
+    pub fn txa(&mut self) {
         todo!()
     }
 
-    pub fn tya(&mut self, operand: Option<Operand>) {
+    pub fn bcc(&mut self) {
         todo!()
     }
 
-    pub fn txs(&mut self, operand: Option<Operand>) {
+    pub fn tya(&mut self) {
         todo!()
     }
 
-    pub fn ldy(&mut self, operand: Option<Operand>) {
+    pub fn txs(&mut self) {
         todo!()
     }
 
-    pub fn lda(&mut self, operand: Option<Operand>) {
+    pub fn ldy(&mut self) {
         todo!()
     }
 
-    pub fn ldx(&mut self, operand: Option<Operand>) {
+    pub fn lda(&mut self) {
         todo!()
     }
 
-    pub fn tay(&mut self, operand: Option<Operand>) {
+    pub fn ldx(&mut self) {
         todo!()
     }
 
-    pub fn tax(&mut self, operand: Option<Operand>) {
+    pub fn tay(&mut self) {
         todo!()
     }
 
-    pub fn cxs(&mut self, operand: Option<Operand>) {
+    pub fn tax(&mut self) {
         todo!()
     }
 
-    pub fn clv(&mut self, operand: Option<Operand>) {
+    pub fn bcs(&mut self) {
         todo!()
     }
 
-    pub fn tsx(&mut self, operand: Option<Operand>) {
+    pub fn clv(&mut self) {
         todo!()
     }
 
-    pub fn cpy(&mut self, operand: Option<Operand>) {
+    pub fn tsx(&mut self) {
         todo!()
     }
 
-    pub fn cmp(&mut self, operand: Option<Operand>) {
+    pub fn cpy(&mut self) {
         todo!()
     }
 
-    pub fn dec(&mut self, operand: Option<Operand>) {
+    pub fn cmp(&mut self) {
         todo!()
     }
 
-    pub fn iny(&mut self, operand: Option<Operand>) {
+    pub fn dec(&mut self) {
         todo!()
     }
 
-    pub fn dex(&mut self, operand: Option<Operand>) {
+    pub fn iny(&mut self) {
         todo!()
     }
 
-    pub fn bne(&mut self, operand: Option<Operand>) {
+    pub fn dex(&mut self) {
         todo!()
     }
 
-    pub fn cld(&mut self, operand: Option<Operand>) {
+    pub fn bne(&mut self) {
         todo!()
     }
 
-    pub fn cpx(&mut self, operand: Option<Operand>) {
+    pub fn cld(&mut self) {
         todo!()
     }
 
-    pub fn sbc(&mut self, operand: Option<Operand>) {
+    pub fn cpx(&mut self) {
         todo!()
     }
 
-    pub fn inc(&mut self, operand: Option<Operand>) {
+    pub fn sbc(&mut self) {
         todo!()
     }
 
-    pub fn inx(&mut self, operand: Option<Operand>) {
+    pub fn inc(&mut self) {
         todo!()
     }
 
-    pub fn beq(&mut self, operand: Option<Operand>) {
+    pub fn inx(&mut self) {
         todo!()
     }
 
-    pub fn sed(&mut self, operand: Option<Operand>) {
+    pub fn nop(&mut self) { }
+
+    pub fn beq(&mut self) {
+        todo!()
+    }
+
+    pub fn sed(&mut self) {
         todo!()
     }
 }

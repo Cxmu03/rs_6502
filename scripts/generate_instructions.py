@@ -37,7 +37,7 @@ def generate_member_fns():
         mnemonic, _ = instruction.split(" ")
 
         if mnemonic not in mnemonics:
-            yield f"pub fn {mnemonic.lower()}(&mut self, operand: Option<Operand>) {{\n\ttodo!()\n}}\n\n"
+            yield f"pub fn {mnemonic.lower()}(&mut self) {{\n\ttodo!()\n}}\n\n"
 
         mnemonics.add(mnemonic)
 

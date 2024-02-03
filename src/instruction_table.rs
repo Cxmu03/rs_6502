@@ -186,7 +186,7 @@ pub const INSTRUCTIONS: &'static [Instruction] = instruction_table! {
     0xAD, InstructionType::LDA, AddressingMode::Absolute, 0, false, Cpu::lda;
     0xAE, InstructionType::LDX, AddressingMode::Absolute, 0, false, Cpu::ldx;
     0xAF, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;
-    0xB0, InstructionType::BCS, AddressingMode::Relative, 0, false, Cpu::cxs;
+    0xB0, InstructionType::BCS, AddressingMode::Relative, 0, false, Cpu::bcs;
     0xB1, InstructionType::LDA, AddressingMode::IndirectY, 0, false, Cpu::lda;
     0xB2, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;
     0xB3, InstructionType::NOP, AddressingMode::Implied, 0, false, Cpu::nop;

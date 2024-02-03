@@ -1,6 +1,6 @@
 use crate::cpu::{Cpu, Operand};
 
-type InstructionFn = fn(&mut Cpu, Option<Operand>);
+type InstructionFn = fn(&mut Cpu);
 
 pub enum AddressingMode {
     Accumulator, // Acc, 1 byte
