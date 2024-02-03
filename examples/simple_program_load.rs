@@ -1,9 +1,9 @@
 use rs_6502::cpu::Cpu;
 
-use env_logger;
+use simple_logger;
 
 fn main() {
-    env_logger::init();
+    simple_logger::init().unwrap();
 
     let program : &[u8]= &[0x02, 0x3C, 0x82, 0xEF, 0xF2, 0xFF];
 
