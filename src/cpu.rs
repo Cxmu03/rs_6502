@@ -173,7 +173,7 @@ impl Cpu {
 
         self.registers.Pc += 1;
 
-        log::debug!("Read instruction {:?} with opcode {:02X} and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, operand);
+        log::debug!("Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, current_instruction.mode, operand);
 
         self.registers.Pc += current_instruction.mode.operand_size();
 

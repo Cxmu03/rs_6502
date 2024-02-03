@@ -2,6 +2,7 @@ use crate::cpu::{Cpu, Operand};
 
 type InstructionFn = fn(&mut Cpu);
 
+#[derive(Debug)]
 pub enum AddressingMode {
     Accumulator, // Acc, 1 byte
     Immediate,   // 8 bit operand, 1 byte
