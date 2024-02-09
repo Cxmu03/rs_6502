@@ -369,7 +369,10 @@ impl Cpu {
     }
 
     pub fn txa(&mut self) {
-        todo!()
+        self.registers.Acc = self.registers.X;
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn bcc(&mut self) {
@@ -377,7 +380,10 @@ impl Cpu {
     }
 
     pub fn tya(&mut self) {
-        todo!()
+        self.registers.Acc = self.registers.Y;
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn txs(&mut self) {
@@ -412,11 +418,17 @@ impl Cpu {
     }
 
     pub fn tay(&mut self) {
-        todo!()
+        self.registers.Y = self.registers.Acc;
+
+        self.update_zero_flag(self.registers.X);
+        self.update_negative_flag(self.registers.X);
     }
 
     pub fn tax(&mut self) {
-        todo!()
+        self.registers.X = self.registers.Acc;
+
+        self.update_zero_flag(self.registers.X);
+        self.update_negative_flag(self.registers.X);
     }
 
     pub fn bcs(&mut self) {
