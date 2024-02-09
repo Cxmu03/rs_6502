@@ -3,6 +3,8 @@ use std::convert::TryFrom;
 
 use indent::indent_all_by;
 
+use crate::util::{set_bit, get_bit, toggle_bit};
+
 #[derive(Debug, Copy, Clone)]
 pub enum Flag {
     Negative = 7,
@@ -65,32 +67,17 @@ impl Debug for Flags {
 }
 
 impl Flags {
-    pub fn set_bit(&mut self, index: u8, value: bool) {
-        let mask = (value as u8) << index;
-
-        if (self.0 & 1 << index) != mask {
-            self.toggle_bit(index);
-        }
-    }
-
-    fn toggle_bit(&mut self, index: u8) {
-        self.0 ^= 1 << index;
-    }
-
-    fn get_bit(&self, index: u8) -> bool {
-        self.0 & (1 << index) == (1 << index)
-    }
 
     pub fn get(&self, flag: Flag) -> bool {
-        self.get_bit(flag as u8)
+        get_bit(self.0, flag as u8)
     }
 
     pub fn set(&mut self, flag: Flag, value: bool) {
-        self.set_bit(flag as u8, value);
+        set_bit(self.0, flag as u8, value);
     }
 
     pub fn toggle(&mut self, flag: Flag) {
-        self.toggle_bit(flag as u8);
+        toggle_bit(self.0, flag as u8);
     }
 }
 
@@ -136,28 +123,5 @@ impl Flags {
 impl Registers {
     pub fn new() -> Registers {
         Registers::default()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_set_bit() {
-        let value = 0b00010000;
-        let mut flags = Flags(value);
-
-        flags.set_bit(4, true);
-        assert_eq!(flags.0, value);
-
-        flags.set_bit(4, false);
-        assert_eq!(flags.0, 0u8);
-
-        flags.set_bit(4, false);
-        assert_eq!(flags.0, 0u8);
-
-        flags.set_bit(4, true);
-        assert_eq!(flags.0, value);
     }
 }
