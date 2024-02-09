@@ -7,7 +7,7 @@ use indent::indent_all_by;
 pub enum Flag {
     Negative = 7,
     Overflow = 6,
-    B = 4,
+    Break = 4,
     Decimal = 3,
     InterruptDisable = 2,
     Zero = 1,
@@ -38,7 +38,8 @@ impl fmt::Display for Flag {
     }
 }
 
-pub struct Flags(u8);
+#[derive(Copy, Clone)]
+pub struct Flags(pub u8);
 
 impl Default for Flags {
     fn default() -> Flags {
@@ -95,7 +96,7 @@ pub struct Registers {
     pub X: u8,      // X Index Register
     pub Y: u8,      // Y Index Register
     pub Pc: u16,    // Program Counter
-    pub Sp: u16,    // Stack Pointer
+    pub Sp: u8,    // Stack Pointer
     pub Acc: u8,    // Accumulator
     pub flags: Flags
 }
@@ -106,7 +107,7 @@ impl Display for Registers {
         write!(f, "    X   = 0x{0:02X}   = {0} \n", self.X)?;
         write!(f, "    Y   = 0x{0:02X}   = {0}\n", self.Y)?;
         write!(f, "    PC  = 0x{0:04X} = {0}\n", self.Pc)?;
-        write!(f, "    SP  = 0x{0:04X} = {0}\n", self.Sp)?;
+        write!(f, "    SP  = 0x{0:02X} = {0}\n", self.Sp)?;
         write!(f, "    ACC = 0x{0:02X}   = {0}\n\n", self.Acc)?;
 
         write!(f, "Flags:\n")?;

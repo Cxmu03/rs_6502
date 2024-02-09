@@ -1,10 +1,11 @@
 use std::fmt::{Debug, Display, self, Formatter};
+use std::thread::current;
 
 use indent::indent_all_by;
 use anyhow::{Result};
 use log;
 
-use crate::registers::{Registers, Flag};
+use crate::registers::{Registers, Flag, Flags};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
 use crate::instruction::{Instruction, AddressingMode};
@@ -63,7 +64,7 @@ impl Cpu {
 
     pub fn init_registers(&mut self) {
         self.registers.Pc = self.memory.read_short(0xFFFC);
-        self.registers.Sp = 0x1FF;
+        self.registers.Sp = 0xFF;
     }
 
     pub fn load_executable(&mut self, bytes: &[u8]) -> Result<()> {
@@ -191,34 +192,42 @@ impl Cpu {
     }
 
     fn push_byte(&mut self, value: u8) {
-        self.registers.Sp -= 1;
-
-        if self.registers.Sp <= 0xFF {
-            panic!("Stack overflow")
+        if self.registers.Sp == 0 {
+            panic!("Stack overflow");
         }
 
-        self.memory.write_byte(self.registers.Sp, value);
+        self.registers.Sp -= 1;
+
+        self.memory.write_byte(self.registers.Sp as u16 + 0x100, value);
     }
 
     fn push_short(&mut self, value: u16) {
-        self.registers.Sp -= 2;
-
-        if self.registers.Sp <= 0xFF {
-            panic!("Stack overflow")
+        if self.registers.Sp == 0 {
+            panic!("Stack overflow");
         }
 
-        self.memory.write_short(self.registers.Sp, value);
+        self.registers.Sp -= 2;
+
+        self.memory.write_short(self.registers.Sp as u16 + 0x100, value);
     }
 
-    fn pop_byte(&mut self, address: u16) -> u8 {
-        let value = self.memory.read_byte(address);
+    fn pop_byte(&mut self) -> u8 {
+        if self.registers.Sp == 0xFF {
+            panic!("Stack underflow");
+        }
+
+        let value = self.memory.read_byte(self.registers.Sp as u16 + 0x100);
         self.registers.Sp += 1;
         
         value
     }
 
-    fn pop_short(&mut self, address: u16) -> u16 {
-        let value = self.memory.read_short(address);
+    fn pop_short(&mut self) -> u16 {
+        if self.registers.Sp >= 0xFE {
+            panic!("Stack underflow");
+        }
+
+        let value = self.memory.read_short(self.registers.Sp as u16 + 0x100);
         self.registers.Sp += 2;
 
         value
@@ -255,7 +264,11 @@ impl Cpu {
     }
 
     pub fn php(&mut self) {
-        todo!()
+        let mut status = self.registers.flags;
+
+        status.set(Flag::Break, true);
+
+        self.push_byte(status.0);
     }
 
     pub fn bpl(&mut self) {
@@ -283,7 +296,11 @@ impl Cpu {
     }
 
     pub fn plp(&mut self) {
-        todo!()
+        let current_break_status = self.registers.flags.get(Flag::Break);
+
+        self.registers.flags = Flags(self.pop_byte());
+
+        self.registers.flags.set(Flag::Break, current_break_status);
     }
 
     pub fn bmi(&mut self) {
@@ -307,7 +324,7 @@ impl Cpu {
     }
 
     pub fn pha(&mut self) {
-        todo!()
+        self.push_byte(self.registers.Acc);
     }
 
     pub fn jmp(&mut self) {
@@ -335,7 +352,10 @@ impl Cpu {
     }
 
     pub fn pla(&mut self) {
-        todo!()
+        self.registers.Acc = self.pop_byte();
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn bvs(&mut self) {
@@ -387,7 +407,7 @@ impl Cpu {
     }
 
     pub fn txs(&mut self) {
-        todo!()
+        self.registers.Sp = self.registers.X;
     }
 
     pub fn ldy(&mut self) {
@@ -440,7 +460,10 @@ impl Cpu {
     }
 
     pub fn tsx(&mut self) {
-        todo!()
+        self.registers.X = self.registers.Sp;
+
+        self.update_zero_flag(self.registers.X);
+        self.update_negative_flag(self.registers.X);
     }
 
     pub fn cpy(&mut self) {
