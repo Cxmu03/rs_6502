@@ -17,11 +17,11 @@ pub(crate) enum Operand {
     Short(u16)
 }
 
-pub struct Cpu<'a, Memory=DefaultMemory> {
+pub struct Cpu<Memory=DefaultMemory> {
     pub registers: Registers,
     pub memory: Memory,
     pub cycles: u32,
-    pub current_instruction: Option<&'a Instruction>
+    pub current_instruction: Option<&'static Instruction>
 }
 
 impl Display for Cpu {
