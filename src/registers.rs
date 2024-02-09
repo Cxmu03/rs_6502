@@ -23,7 +23,7 @@ impl TryFrom<u8> for Flag {
             1 => Ok(Flag::Zero),
             2 => Ok(Flag::InterruptDisable),
             3 => Ok(Flag::Decimal),
-            4 => Ok(Flag::B),
+            4 => Ok(Flag::Break),
             5 => Err(String::from("Flagbit 6 is always unused")),
             6 => Ok(Flag::Overflow),
             7 => Ok(Flag::Negative),
@@ -65,8 +65,12 @@ impl Debug for Flags {
 }
 
 impl Flags {
-    fn set_bit(&mut self, index: u8, value: bool) {
-        self.0 |= (value as u8) << index; 
+    pub fn set_bit(&mut self, index: u8, value: bool) {
+        let mask = (value as u8) << index;
+
+        if (self.0 & 1 << index) != mask {
+            self.toggle_bit(index);
+        }
     }
 
     fn toggle_bit(&mut self, index: u8) {
@@ -132,5 +136,28 @@ impl Flags {
 impl Registers {
     pub fn new() -> Registers {
         Registers::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_bit() {
+        let value = 0b00010000;
+        let mut flags = Flags(value);
+
+        flags.set_bit(4, true);
+        assert_eq!(flags.0, value);
+
+        flags.set_bit(4, false);
+        assert_eq!(flags.0, 0u8);
+
+        flags.set_bit(4, false);
+        assert_eq!(flags.0, 0u8);
+
+        flags.set_bit(4, true);
+        assert_eq!(flags.0, value);
     }
 }
