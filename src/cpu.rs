@@ -404,7 +404,10 @@ impl Cpu {
     }
 
     pub fn dey(&mut self) {
-        todo!()
+        self.registers.Y = self.registers.Y - 1;
+
+        self.update_zero_flag(self.registers.Y);
+        self.update_negative_flag(self.registers.Y);
     }
 
     pub fn txa(&mut self) {
@@ -494,15 +497,27 @@ impl Cpu {
     }
 
     pub fn dec(&mut self) {
-        todo!()
+        let address = self.get_operand_address().expect("Could not get operand address");
+
+        let new_value = self.memory.read_byte(address) - 1;
+
+        self.memory.write_byte(address, new_value);
+        self.update_zero_flag(new_value);
+        self.update_negative_flag(new_value);
     }
 
     pub fn iny(&mut self) {
-        todo!()
+        self.registers.Y = self.registers.Y + 1;
+
+        self.update_zero_flag(self.registers.Y);
+        self.update_negative_flag(self.registers.Y);
     }
 
     pub fn dex(&mut self) {
-        todo!()
+        self.registers.X = self.registers.X - 1;
+
+        self.update_zero_flag(self.registers.X);
+        self.update_negative_flag(self.registers.X);
     }
 
     pub fn bne(&mut self) {
@@ -522,11 +537,20 @@ impl Cpu {
     }
 
     pub fn inc(&mut self) {
-        todo!()
+        let address = self.get_operand_address().expect("Could not get operand address");
+
+        let new_value = self.memory.read_byte(address) + 1;
+
+        self.memory.write_byte(address, new_value);
+        self.update_zero_flag(new_value);
+        self.update_negative_flag(new_value);
     }
 
     pub fn inx(&mut self) {
-        todo!()
+        self.registers.X = self.registers.X + 1;
+
+        self.update_zero_flag(self.registers.X);
+        self.update_negative_flag(self.registers.X);
     }
 
     pub fn nop(&mut self) { }
