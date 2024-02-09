@@ -9,7 +9,7 @@ use crate::registers::{Registers, Flag, Flags};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
 use crate::instruction::{Instruction, AddressingMode};
-use crate::util::FromTwosComplementBits;
+use crate::util::{FromTwosComplementBits, get_bit};
 use crate::default_memory::DefaultMemory;
 
 #[derive(Debug)]
@@ -253,6 +253,9 @@ impl Cpu {
         let operand = self.get_operand_value().expect("Could not get operand");
 
         self.registers.Acc = self.registers.Acc | operand;
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn kil(&mut self) {
@@ -284,11 +287,22 @@ impl Cpu {
     }
 
     pub fn and(&mut self) {
-        todo!()
+        let value = self.get_operand_value().expect("Could not get operand value");
+
+        self.registers.Acc = self.registers.Acc & value;
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn bit(&mut self) {
-        todo!()
+        let value = self.get_operand_value().expect("Could not get operand value");
+
+
+        self.registers.flags.set(Flag::Negative, get_bit(value, Flag::Negative as u8));
+        self.registers.flags.set(Flag::Overflow, get_bit(value, Flag::Overflow as u8));
+
+        self.update_zero_flag(value & self.registers.Acc);
     }
 
     pub fn rol(&mut self) {
@@ -316,7 +330,12 @@ impl Cpu {
     }
 
     pub fn eor(&mut self) {
-        todo!()
+        let value = self.get_operand_value().expect("Could not get operand value");
+
+        self.registers.Acc = self.registers.Acc ^ value;
+
+        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.Acc);
     }
 
     pub fn lsr(&mut self) {
