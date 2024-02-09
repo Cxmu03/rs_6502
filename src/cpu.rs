@@ -4,7 +4,7 @@ use indent::indent_all_by;
 use anyhow::{Result};
 use log;
 
-use crate::registers::Registers;
+use crate::registers::{Registers, Flag};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
 use crate::instruction::{Instruction, AddressingMode};
@@ -17,10 +17,11 @@ pub(crate) enum Operand {
     Short(u16)
 }
 
-pub struct Cpu<Memory=DefaultMemory> {
+pub struct Cpu<'a, Memory=DefaultMemory> {
     pub registers: Registers,
     pub memory: Memory,
-    pub cycles: u32
+    pub cycles: u32,
+    pub current_instruction: Option<&'a Instruction>
 }
 
 impl Display for Cpu {
@@ -44,7 +45,8 @@ impl Cpu {
         let mut cpu = Cpu {
             registers: Registers::new(),
             memory: Memory::new(),
-            cycles: 0
+            cycles: 0,
+            current_instruction: None
         };
 
         cpu.init_registers();
@@ -98,8 +100,8 @@ impl Cpu {
         zero_page_address.wrapping_add(register) as u16
     }
 
-    fn get_operand_address(&self, instruction: &Instruction) -> Option<u16> {
-        match instruction.mode {
+    fn get_operand_address(&self) -> Option<u16> {
+        match self.current_instruction?.mode {
             AddressingMode::Absolute => {
                 Some(self.read_current_short())
             } 
@@ -144,8 +146,8 @@ impl Cpu {
         }
     }
 
-    fn get_operand_value(&mut self, instruction: &Instruction) -> Option<u8> {
-        match instruction.mode {
+    fn get_operand_value(&mut self) -> Option<u8> {
+        match self.current_instruction?.mode {
             AddressingMode::Implied => {
                 None
             }
@@ -157,7 +159,7 @@ impl Cpu {
             }
             _ => {
                 // Previous arms prevent get_operand_address from returning None
-                let address = self.get_operand_address(instruction).unwrap();
+                let address = self.get_operand_address()?;
 
                 Some(self.memory.read_byte(address))
             }
@@ -169,7 +171,9 @@ impl Cpu {
         let opcode: u8 = self.read_current_byte();
         let current_instruction = &INSTRUCTIONS[opcode as usize];
 
-        let operand = self.get_operand_value(current_instruction);
+        self.current_instruction = Some(current_instruction);
+
+        let operand = self.get_operand_value();
 
         self.registers.Pc += 1;
 
@@ -221,12 +225,25 @@ impl Cpu {
 
     }
 
+    fn update_zero_flag(&mut self, value: u8) {
+        self.registers.flags.set(Flag::Zero, value == 0);
+    }
+
+    fn update_negative_flag(&mut self, value: u8) {
+        let flag = 0b10000000;
+        let is_negative = (value & flag) == flag;
+
+        self.registers.flags.set(Flag::Negative, is_negative);
+    }
+
     pub fn brk(&mut self) {
         todo!()
     }
 
     pub fn ora(&mut self) {
-        todo!()
+        let operand = self.get_operand_value().expect("Could not get operand");
+
+        self.registers.Acc = self.registers.Acc | operand;
     }
 
     pub fn kil(&mut self) {
@@ -330,15 +347,21 @@ impl Cpu {
     }
 
     pub fn sta(&mut self) {
-        todo!()
+        let address = self.get_operand_address().expect("Could not get operand");
+
+        self.memory.write_byte(address, self.registers.Acc);
     }
 
     pub fn sty(&mut self) {
-        todo!()
+        let address = self.get_operand_address().expect("Could not get operand");
+
+        self.memory.write_byte(address, self.registers.Y);
     }
 
     pub fn stx(&mut self) {
-        todo!()
+        let address = self.get_operand_address().expect("Could not get operand");
+
+        self.memory.write_byte(address, self.registers.Y);
     }
 
     pub fn dey(&mut self) {
@@ -362,15 +385,30 @@ impl Cpu {
     }
 
     pub fn ldy(&mut self) {
-        todo!()
+        let operand = self.get_operand_value().expect("Could not get operand");
+
+        self.registers.Y = operand;
+
+        self.update_zero_flag(operand);
+        self.update_negative_flag(operand);
     }
 
     pub fn lda(&mut self) {
-        todo!()
+        let operand = self.get_operand_value().expect("Could not get operand");
+
+        self.registers.Acc = operand;
+
+        self.update_zero_flag(operand);
+        self.update_negative_flag(operand);
     }
 
     pub fn ldx(&mut self) {
-        todo!()
+        let operand = self.get_operand_value().expect("Could not get operand");
+
+        self.registers.X = operand;
+
+        self.update_zero_flag(operand);
+        self.update_negative_flag(operand);
     }
 
     pub fn tay(&mut self) {
