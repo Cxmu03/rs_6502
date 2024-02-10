@@ -418,7 +418,11 @@ impl Cpu {
     }
 
     pub fn bcc(&mut self) {
-        todo!()
+        let new_pc = self.get_operand_address().expect("Could not get operand");
+
+        if self.registers.flags.get(Flag::Carry) == false {
+            self.registers.Pc = new_pc;
+        }
     }
 
     pub fn tya(&mut self) {
@@ -474,7 +478,11 @@ impl Cpu {
     }
 
     pub fn bcs(&mut self) {
-        todo!()
+        let new_pc = self.get_operand_address().expect("Could not get operand");
+
+        if self.registers.flags.get(Flag::Carry) {
+            self.registers.Pc = new_pc;
+        }
     }
 
     pub fn clv(&mut self) {
