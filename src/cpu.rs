@@ -279,7 +279,7 @@ impl Cpu {
     }
 
     pub fn clc(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Carry, false);
     }
 
     pub fn jsr(&mut self) {
@@ -322,7 +322,7 @@ impl Cpu {
     }
 
     pub fn sec(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Carry, true);
     }
 
     pub fn rti(&mut self) {
@@ -355,7 +355,7 @@ impl Cpu {
     }
 
     pub fn cli(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::InterruptDisable, false);
     }
 
     pub fn rts(&mut self) {
@@ -382,7 +382,7 @@ impl Cpu {
     }
 
     pub fn sei(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::InterruptDisable, true);
     }
 
     pub fn sta(&mut self) {
@@ -478,7 +478,7 @@ impl Cpu {
     }
 
     pub fn clv(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Overflow, false);
     }
 
     pub fn tsx(&mut self) {
@@ -525,7 +525,7 @@ impl Cpu {
     }
 
     pub fn cld(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Decimal, false);
     }
 
     pub fn cpx(&mut self) {
@@ -560,6 +560,6 @@ impl Cpu {
     }
 
     pub fn sed(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Decimal, true);
     }
 }
