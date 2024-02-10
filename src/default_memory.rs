@@ -11,11 +11,11 @@ pub struct DefaultMemory {
 
 impl DefaultMemory {
     fn verify_executable(content_length: usize) -> Result<(usize, usize)> {
-        let start = 0x200 as usize;
-        let end = start + content_length;
+        let start = 0xFFFA as usize - content_length;
+        let end = 0xFFFA;
 
-        // Vectors start at 0xFFFA and should not be overwritten with program code
-        let max_binary_size = 0xFFFA_usize - start;
+        // 32k binary limit
+        let max_binary_size = 1 << 15;
 
         if content_length > max_binary_size {
             return Err(anyhow!("Binary size ({content_length}) exceeds maximum size of {max_binary_size}"));
