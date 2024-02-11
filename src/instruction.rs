@@ -82,4 +82,11 @@ impl Instruction {
             fun: Cpu::nop
         }
     }
+
+    pub fn is_jump(&self) -> bool {
+        matches!(&self.instruction_type, InstructionType::BCS | InstructionType::BEQ | InstructionType::BMI |
+                                         InstructionType::BNE | InstructionType::BPL | InstructionType::BVS |
+                                         InstructionType::BVC | InstructionType::JSR | InstructionType::RTS |
+                                         InstructionType::JMP)
+    }
 }

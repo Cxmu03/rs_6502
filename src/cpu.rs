@@ -8,7 +8,7 @@ use log;
 use crate::registers::{Registers, Flag, Flags};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
-use crate::instruction::{Instruction, AddressingMode};
+use crate::instruction::{Instruction, AddressingMode, InstructionType};
 use crate::util::{FromTwosComplementBits, get_bit};
 use crate::default_memory::DefaultMemory;
 
@@ -180,7 +180,9 @@ impl Cpu {
 
         log::debug!("Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, current_instruction.mode, operand);
 
-        self.registers.Pc += current_instruction.mode.operand_size();
+        if !current_instruction.is_jump() {
+            self.registers.Pc += current_instruction.mode.operand_size();
+        }
 
         self.execute_instruction(&current_instruction);
 
@@ -291,7 +293,9 @@ impl Cpu {
     }
 
     pub fn jsr(&mut self) {
-        todo!()
+        self.push_short(self.registers.Pc + 1);
+
+        self.branch_if(true);
     }
 
     pub fn and(&mut self) {
@@ -355,7 +359,9 @@ impl Cpu {
     }
 
     pub fn jmp(&mut self) {
-        todo!()
+        let new_pc = self.get_operand_address().expect("New address should be valid");
+
+        self.registers.Pc = new_pc;
     }
 
     pub fn bvc(&mut self) {
@@ -367,7 +373,9 @@ impl Cpu {
     }
 
     pub fn rts(&mut self) {
-        todo!()
+        let return_address = self.pop_short() + 1;
+
+        self.registers.Pc = return_address;
     }
 
     pub fn adc(&mut self) {
@@ -482,7 +490,7 @@ impl Cpu {
     }
 
     pub fn bcs(&mut self) {
-        self.branch_if(self.registers.flags.get(Flag::Carry);
+        self.branch_if(self.registers.flags.get(Flag::Carry));
     }
 
     pub fn clv(&mut self) {
@@ -564,7 +572,7 @@ impl Cpu {
     pub fn nop(&mut self) { }
 
     pub fn beq(&mut self) {
-        self.branch_if(self.registers.flags.get(Flag::zero) == true);
+        self.branch_if(self.registers.flags.get(Flag::Zero) == true);
     }
 
     pub fn sed(&mut self) {
