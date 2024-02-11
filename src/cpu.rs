@@ -234,6 +234,14 @@ impl Cpu {
 
     }
 
+    fn branch_if(&mut self, condition: bool) {
+        let new_pc = self.get_operand_address().expect("PC offset should be valid");
+
+        if condition {
+            self.registers.Pc = new_pc;
+        }
+    }
+
     fn update_zero_flag(&mut self, value: u8) {
         self.registers.flags.set(Flag::Zero, value == 0);
     }
@@ -275,7 +283,7 @@ impl Cpu {
     }
 
     pub fn bpl(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::Negative) == false);
     }
 
     pub fn clc(&mut self) {
@@ -318,7 +326,7 @@ impl Cpu {
     }
 
     pub fn bmi(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::Negative) == true);
     }
 
     pub fn sec(&mut self) {
@@ -351,7 +359,7 @@ impl Cpu {
     }
 
     pub fn bvc(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::Overflow) == false);
     }
 
     pub fn cli(&mut self) {
@@ -378,7 +386,7 @@ impl Cpu {
     }
 
     pub fn bvs(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::Overflow) == true);
     }
 
     pub fn sei(&mut self) {
@@ -418,11 +426,7 @@ impl Cpu {
     }
 
     pub fn bcc(&mut self) {
-        let new_pc = self.get_operand_address().expect("Could not get operand");
-
-        if self.registers.flags.get(Flag::Carry) == false {
-            self.registers.Pc = new_pc;
-        }
+        self.branch_if(self.registers.flags.get(Flag::Carry) == false)
     }
 
     pub fn tya(&mut self) {
@@ -478,11 +482,7 @@ impl Cpu {
     }
 
     pub fn bcs(&mut self) {
-        let new_pc = self.get_operand_address().expect("Could not get operand");
-
-        if self.registers.flags.get(Flag::Carry) {
-            self.registers.Pc = new_pc;
-        }
+        self.branch_if(self.registers.flags.get(Flag::Carry);
     }
 
     pub fn clv(&mut self) {
@@ -529,7 +529,7 @@ impl Cpu {
     }
 
     pub fn bne(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::Zero) == false);
     }
 
     pub fn cld(&mut self) {
@@ -564,7 +564,7 @@ impl Cpu {
     pub fn nop(&mut self) { }
 
     pub fn beq(&mut self) {
-        todo!()
+        self.branch_if(self.registers.flags.get(Flag::zero) == true);
     }
 
     pub fn sed(&mut self) {
