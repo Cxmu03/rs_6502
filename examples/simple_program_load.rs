@@ -5,7 +5,7 @@ use simple_logger;
 fn main() {
     simple_logger::init().unwrap();
 
-    let program : &[u8]= &[0x02, 0x3C, 0x82, 0xEF, 0xF2, 0xFF];
+    let program: &[u8] = &[0x02, 0x3C, 0x82, 0xEF, 0xF2, 0xFF];
 
     let mut cpu = Cpu::new();
 

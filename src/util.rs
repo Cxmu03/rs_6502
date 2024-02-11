@@ -1,5 +1,5 @@
-use std::mem::transmute;
 use crate::registers::Flags;
+use std::mem::transmute;
 
 pub(crate) trait FromTwosComplementBits {
     type TwosComplementType;
@@ -16,7 +16,6 @@ impl FromTwosComplementBits for i8 {
         }
     }
 }
-
 
 pub(crate) fn set_bit(value: u8, index: u8, value_at_index: bool) -> u8 {
     let mask = (value_at_index as u8) << index;

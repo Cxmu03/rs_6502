@@ -1,12 +1,12 @@
 use std::fs::File;
 use std::io::Read;
 
-use anyhow::{Result, Error, anyhow};
+use anyhow::{anyhow, Error, Result};
 
 use crate::memory::Memory;
 
 pub struct DefaultMemory {
-    data: [u8; 1 << 16]
+    data: [u8; 1 << 16],
 }
 
 impl DefaultMemory {
@@ -18,7 +18,9 @@ impl DefaultMemory {
         let max_binary_size = 1 << 15;
 
         if content_length > max_binary_size {
-            return Err(anyhow!("Binary size ({content_length}) exceeds maximum size of {max_binary_size}"));
+            return Err(anyhow!(
+                "Binary size ({content_length}) exceeds maximum size of {max_binary_size}"
+            ));
         }
 
         Ok((start, end))
@@ -29,9 +31,7 @@ impl Memory for DefaultMemory {
     fn new() -> Self {
         let mut data: [u8; 1 << 16] = [0u8; 1 << 16];
 
-        Self {
-            data: data
-        }
+        Self { data: data }
     }
 
     fn read_byte(&self, address: u16) -> u8 {
@@ -59,7 +59,7 @@ impl Memory for DefaultMemory {
         Ok(start as u16)
     }
 
-    fn load_from_file(&mut self, name: &str) -> Result<u16>{
+    fn load_from_file(&mut self, name: &str) -> Result<u16> {
         let mut file = File::open(name)?;
 
         let (start, end) = Self::verify_executable(file.metadata()?.len() as usize)?;

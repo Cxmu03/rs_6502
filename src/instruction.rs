@@ -13,7 +13,7 @@ pub enum AddressingMode {
     AbsoluteX,   // X + 16 bit address offset, 3 bytes
     AbsoluteY,   // Y + 16 bit address offset, 3 bytes
     Relative,    // 8 bit offset for jump, 2 bytes
-    Indirect,    // 16 bit address, 3 
+    Indirect,    // 16 bit address, 3
     IndirectX,   // todo
     IndirectY,   // todo
     Implied,     // No operand
@@ -34,11 +34,12 @@ impl AddressingMode {
             AddressingMode::Indirect => 2,
             AddressingMode::IndirectX => 2,
             AddressingMode::IndirectY => 2,
-            AddressingMode::Implied => 0
+            AddressingMode::Implied => 0,
         }
     }
 }
 
+#[rustfmt::skip]
 #[derive(Debug)]
 pub enum InstructionType {
     ADC, AND, ASL,
@@ -68,7 +69,7 @@ pub struct Instruction {
     pub mode: AddressingMode,
     pub cycles: u8,
     pub extra_cycle: bool, // Adds extra cycle if page boundary is crossed,
-    pub fun: InstructionFn
+    pub fun: InstructionFn,
 }
 
 impl Instruction {
@@ -79,14 +80,23 @@ impl Instruction {
             mode: AddressingMode::Implied,
             cycles: 2,
             extra_cycle: false,
-            fun: Cpu::nop
+            fun: Cpu::nop,
         }
     }
 
     pub fn is_jump(&self) -> bool {
-        matches!(&self.instruction_type, InstructionType::BCS | InstructionType::BEQ | InstructionType::BMI |
-                                         InstructionType::BNE | InstructionType::BPL | InstructionType::BVS |
-                                         InstructionType::BVC | InstructionType::JSR | InstructionType::RTS |
-                                         InstructionType::JMP)
+        matches!(
+            &self.instruction_type,
+            InstructionType::BCS
+                | InstructionType::BEQ
+                | InstructionType::BMI
+                | InstructionType::BNE
+                | InstructionType::BPL
+                | InstructionType::BVS
+                | InstructionType::BVC
+                | InstructionType::JSR
+                | InstructionType::RTS
+                | InstructionType::JMP
+        )
     }
 }

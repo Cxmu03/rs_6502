@@ -1,5 +1,5 @@
-use crate::instruction::{Instruction, InstructionType, AddressingMode};
 use crate::cpu::Cpu;
+use crate::instruction::{AddressingMode, Instruction, InstructionType};
 
 macro_rules! instruction_table {
     ($($opcode: expr, $instruction_type: expr, $mode: expr, $cycles: expr, $extra_cycle: expr, $fun: expr);+) => {

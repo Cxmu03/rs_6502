@@ -1,9 +1,9 @@
-use std::fmt::{Display, Debug, Formatter, self};
 use std::convert::TryFrom;
+use std::fmt::{self, Debug, Display, Formatter};
 
 use indent::indent_all_by;
 
-use crate::util::{set_bit, get_bit, toggle_bit};
+use crate::util::{get_bit, set_bit, toggle_bit};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Flag {
@@ -13,7 +13,7 @@ pub enum Flag {
     Decimal = 3,
     InterruptDisable = 2,
     Zero = 1,
-    Carry = 0
+    Carry = 0,
 }
 
 impl TryFrom<u8> for Flag {
@@ -29,7 +29,7 @@ impl TryFrom<u8> for Flag {
             5 => Err(String::from("Flagbit 6 is always unused")),
             6 => Ok(Flag::Overflow),
             7 => Ok(Flag::Negative),
-            _ => Err(format!("{value} is not a valid flagbit index"))
+            _ => Err(format!("{value} is not a valid flagbit index")),
         }
     }
 }
@@ -45,7 +45,7 @@ pub struct Flags(pub u8);
 
 impl Default for Flags {
     fn default() -> Flags {
-        Flags(0b00100100) 
+        Flags(0b00100100)
     }
 }
 
@@ -67,7 +67,6 @@ impl Debug for Flags {
 }
 
 impl Flags {
-
     pub fn get(&self, flag: Flag) -> bool {
         get_bit(self.0, flag as u8)
     }
@@ -84,12 +83,12 @@ impl Flags {
 #[allow(non_snake_case)]
 #[derive(Default)]
 pub struct Registers {
-    pub X: u8,      // X Index Register
-    pub Y: u8,      // Y Index Register
-    pub Pc: u16,    // Program Counter
-    pub Sp: u8,    // Stack Pointer
-    pub Acc: u8,    // Accumulator
-    pub flags: Flags
+    pub X: u8,   // X Index Register
+    pub Y: u8,   // Y Index Register
+    pub Pc: u16, // Program Counter
+    pub Sp: u8,  // Stack Pointer
+    pub Acc: u8, // Accumulator
+    pub flags: Flags,
 }
 
 impl Display for Registers {

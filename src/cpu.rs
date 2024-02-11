@@ -1,35 +1,35 @@
-use std::fmt::{Debug, Display, self, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::thread::current;
 
+use anyhow::Result;
 use indent::indent_all_by;
-use anyhow::{Result};
 use log;
 
-use crate::registers::{Registers, Flag, Flags};
+use crate::default_memory::DefaultMemory;
+use crate::instruction::{AddressingMode, Instruction, InstructionType};
 use crate::instruction_table::INSTRUCTIONS;
 use crate::memory::Memory;
-use crate::instruction::{Instruction, AddressingMode, InstructionType};
-use crate::util::{FromTwosComplementBits, get_bit};
-use crate::default_memory::DefaultMemory;
+use crate::registers::{Flag, Flags, Registers};
+use crate::util::{get_bit, FromTwosComplementBits};
 
 #[derive(Debug)]
 pub(crate) enum Operand {
     Byte(u8),
-    Short(u16)
+    Short(u16),
 }
 
-pub struct Cpu<Memory=DefaultMemory> {
+pub struct Cpu<Memory = DefaultMemory> {
     pub registers: Registers,
     pub memory: Memory,
     pub cycles: u32,
-    pub current_instruction: Option<&'static Instruction>
+    pub current_instruction: Option<&'static Instruction>,
 }
 
 impl Display for Cpu {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Cpu:\n")?;
         write!(f, "    cycles = {}\n\n", self.cycles);
-        
+
         write!(f, "{}", indent_all_by(4, self.registers.to_string()));
         Ok(())
     }
@@ -47,7 +47,7 @@ impl Cpu {
             registers: Registers::new(),
             memory: Memory::new(),
             cycles: 0,
-            current_instruction: None
+            current_instruction: None,
         };
 
         cpu.init_registers();
@@ -56,7 +56,7 @@ impl Cpu {
     }
 
     pub fn reset(&mut self) {
-        self.registers = Registers::new(); 
+        self.registers = Registers::new();
         self.init_registers();
 
         self.cycles = 8;
@@ -103,24 +103,16 @@ impl Cpu {
 
     fn get_operand_address(&self) -> Option<u16> {
         match self.current_instruction?.mode {
-            AddressingMode::Absolute => {
-                Some(self.read_current_short())
-            } 
+            AddressingMode::Absolute => Some(self.read_current_short()),
             AddressingMode::AbsoluteX => {
                 Some(self.read_current_short() + (self.registers.X as u16))
             }
             AddressingMode::AbsoluteY => {
                 Some(self.read_current_short() + (self.registers.Y as u16))
             }
-            AddressingMode::ZeroPage => {
-                Some(self.read_current_byte() as u16)
-            }
-            AddressingMode::ZeroPageX => {
-                Some(self.indexed_zero_page(self.registers.X))
-            }
-            AddressingMode::ZeroPageY => {
-                Some(self.indexed_zero_page(self.registers.Y))
-            }
+            AddressingMode::ZeroPage => Some(self.read_current_byte() as u16),
+            AddressingMode::ZeroPageX => Some(self.indexed_zero_page(self.registers.X)),
+            AddressingMode::ZeroPageY => Some(self.indexed_zero_page(self.registers.Y)),
             AddressingMode::Indirect => {
                 let direct_address = self.memory.read_short(self.registers.Pc);
                 let indirect_address = self.memory.read_short(direct_address);
@@ -149,15 +141,9 @@ impl Cpu {
 
     fn get_operand_value(&mut self) -> Option<u8> {
         match self.current_instruction?.mode {
-            AddressingMode::Implied => {
-                None
-            }
-            AddressingMode::Immediate => {
-                Some(self.read_current_byte())
-            }
-            AddressingMode::Accumulator => {
-                Some(self.registers.Acc)
-            }
+            AddressingMode::Implied => None,
+            AddressingMode::Immediate => Some(self.read_current_byte()),
+            AddressingMode::Accumulator => Some(self.registers.Acc),
             _ => {
                 // Previous arms prevent get_operand_address from returning None
                 let address = self.get_operand_address()?;
@@ -166,7 +152,6 @@ impl Cpu {
             }
         }
     }
-
 
     pub fn step(&mut self) {
         let opcode: u8 = self.read_current_byte();
@@ -178,7 +163,13 @@ impl Cpu {
 
         self.registers.Pc += 1;
 
-        log::debug!("Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}", current_instruction.instruction_type, current_instruction.opcode, current_instruction.mode, operand);
+        log::debug!(
+            "Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}",
+            current_instruction.instruction_type,
+            current_instruction.opcode,
+            current_instruction.mode,
+            operand
+        );
 
         if !current_instruction.is_jump() {
             self.registers.Pc += current_instruction.mode.operand_size();
@@ -220,7 +211,7 @@ impl Cpu {
 
         let value = self.memory.read_byte(self.registers.Sp as u16 + 0x100);
         self.registers.Sp += 1;
-        
+
         value
     }
 
@@ -233,7 +224,6 @@ impl Cpu {
         self.registers.Sp += 2;
 
         value
-
     }
 
     fn branch_if(&mut self, condition: bool) {
@@ -309,7 +299,6 @@ impl Cpu {
 
     pub fn bit(&mut self) {
         let value = self.get_operand_value().expect("Could not get operand value");
-
 
         self.registers.flags.set(Flag::Negative, get_bit(value, Flag::Negative as u8));
         self.registers.flags.set(Flag::Overflow, get_bit(value, Flag::Overflow as u8));
@@ -569,7 +558,7 @@ impl Cpu {
         self.update_negative_flag(self.registers.X);
     }
 
-    pub fn nop(&mut self) { }
+    pub fn nop(&mut self) {}
 
     pub fn beq(&mut self) {
         self.branch_if(self.registers.flags.get(Flag::Zero) == true);
