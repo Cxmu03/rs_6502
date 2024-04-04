@@ -86,7 +86,7 @@ pub struct Registers {
     pub y: u8,   // Y Index Register
     pub pc: u16, // Program Counter
     pub sp: u8,  // Stack Pointer
-    pub a: u8, // Accumulator
+    pub a: u8,   // Accumulator
     pub flags: Flags,
 }
 
