@@ -37,7 +37,11 @@ impl Display for Cpu {
 
 impl Debug for Cpu {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        f.debug_struct("Cpu")
+            .field("registers", &self.registers)
+            .field("cycles", &self.cycles)
+            .field("current_instruction", &self.current_instruction)
+            .finish()
     }
 }
 

@@ -63,6 +63,7 @@ pub enum InstructionType {
     TXA, TXS, TYA,
 }
 
+#[derive(Debug)]
 pub struct Instruction {
     pub opcode: u8,
     pub instruction_type: InstructionType,

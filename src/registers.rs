@@ -62,7 +62,7 @@ impl Display for Flags {
 
 impl Debug for Flags {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
+        f.debug_struct("Flags").field("value", &format!("{:#b}", self.0)).finish()
     }
 }
 
@@ -80,7 +80,7 @@ impl Flags {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Registers {
     pub x: u8,   // X Index Register
     pub y: u8,   // Y Index Register
@@ -103,12 +103,6 @@ impl Display for Registers {
         write!(f, "{}", indent_all_by(4, self.flags.to_string()))?;
 
         Ok(())
-    }
-}
-
-impl Debug for Registers {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
     }
 }
 
