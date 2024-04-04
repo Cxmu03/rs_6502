@@ -234,6 +234,54 @@ impl Cpu {
         }
     }
 
+    fn add_bcd(&mut self, value: u8) {
+        let vh = u16::from(value >> 4);
+        let vl = u16::from(value & 0xF);
+
+        let al = u16::from(self.registers.Acc & 0xF);
+        let ah = u16::from(self.registers.Acc >> 4);
+
+        let carry = self.registers.flags.get(Flag::Carry) as u8;
+
+        let mut sum_l: u16 = al + vl + u16::from(carry);
+        let mut sum_h: u16 = ah + vh;
+
+        let mut carry_out = false;
+
+        if sum_l >= 0xA {
+            sum_l = (sum_l + 6) & 0xF;
+            sum_h += 1;
+        }
+
+        if sum_h >= 0xA {
+            sum_h = (sum_h + 6) & 0xF;
+            carry_out = true;
+        }
+
+        let sum: u8 = ((sum_h as u8) << 4) | (sum_l as u8);
+
+        self.registers.Acc = sum;
+
+        self.registers.flags.set(Flag::Carry, carry_out);
+    }
+
+    fn add_binary(&mut self, value: u8) {
+        let value = u16::from(value);
+        let carry = u16::from(self.registers.flags.get(Flag::Carry));
+
+        let mut carry_out = false;
+
+        let sum = u16::from(self.registers.Acc) + value + carry;
+
+        if sum > 255 {
+            carry_out = true
+        }
+
+        self.registers.Acc = sum as u8;
+
+        self.registers.flags.set(Flag::Carry, carry_out);
+    }
+
     fn update_zero_flag(&mut self, value: u8) {
         self.registers.flags.set(Flag::Zero, value == 0);
     }
@@ -368,7 +416,26 @@ impl Cpu {
     }
 
     pub fn adc(&mut self) {
-        todo!()
+        let acc_before = self.registers.Acc;
+        let carry = u8::from(self.registers.flags.get(Flag::Carry));
+        let mut value = self.get_operand_value().expect("Should get a valid operand");
+
+        self.registers.flags.set(Flag::Overflow, false);
+
+        if self.registers.flags.get(Flag::Decimal) {
+            self.add_bcd(value);
+        } else {
+            self.add_binary(value);
+        }
+
+        let acc_after = self.registers.Acc;
+
+        let did_overflow = ((value ^ acc_after) & (acc_before ^ acc_after) & 0x80) != 0;
+
+        self.registers.flags.set(Flag::Overflow, did_overflow);
+
+        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.Acc);
     }
 
     pub fn ror(&mut self) {
