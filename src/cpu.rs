@@ -63,8 +63,8 @@ impl Cpu {
     }
 
     pub fn init_registers(&mut self) {
-        self.registers.Pc = self.memory.read_short(0xFFFC);
-        self.registers.Sp = 0xFF;
+        self.registers.pc = self.memory.read_short(0xFFFC);
+        self.registers.sp = 0xFF;
     }
 
     pub fn load_executable(&mut self, bytes: &[u8]) -> Result<()> {
@@ -88,15 +88,15 @@ impl Cpu {
     }
 
     fn read_current_byte(&self) -> u8 {
-        self.memory.read_byte(self.registers.Pc)
+        self.memory.read_byte(self.registers.pc)
     }
 
     fn read_current_short(&self) -> u16 {
-        self.memory.read_short(self.registers.Pc)
+        self.memory.read_short(self.registers.pc)
     }
 
     fn indexed_zero_page(&self, register: u8) -> u16 {
-        let zero_page_address = self.memory.read_byte(self.registers.Pc);
+        let zero_page_address = self.memory.read_byte(self.registers.pc);
 
         zero_page_address.wrapping_add(register) as u16
     }
@@ -105,33 +105,33 @@ impl Cpu {
         match self.current_instruction?.mode {
             AddressingMode::Absolute => Some(self.read_current_short()),
             AddressingMode::AbsoluteX => {
-                Some(self.read_current_short() + (self.registers.X as u16))
+                Some(self.read_current_short() + (self.registers.x as u16))
             }
             AddressingMode::AbsoluteY => {
-                Some(self.read_current_short() + (self.registers.Y as u16))
+                Some(self.read_current_short() + (self.registers.y as u16))
             }
             AddressingMode::ZeroPage => Some(self.read_current_byte() as u16),
-            AddressingMode::ZeroPageX => Some(self.indexed_zero_page(self.registers.X)),
-            AddressingMode::ZeroPageY => Some(self.indexed_zero_page(self.registers.Y)),
+            AddressingMode::ZeroPageX => Some(self.indexed_zero_page(self.registers.x)),
+            AddressingMode::ZeroPageY => Some(self.indexed_zero_page(self.registers.y)),
             AddressingMode::Indirect => {
-                let direct_address = self.memory.read_short(self.registers.Pc);
+                let direct_address = self.memory.read_short(self.registers.pc);
                 let indirect_address = self.memory.read_short(direct_address);
                 Some(indirect_address)
             }
             AddressingMode::IndirectX => {
                 let direct_address: u16 = self.read_current_short();
-                let indirect_address = direct_address + self.registers.X as u16;
+                let indirect_address = direct_address + self.registers.x as u16;
                 Some(indirect_address)
             }
             AddressingMode::IndirectY => {
                 let direct_address: u16 = self.read_current_short();
-                let indirect_address = direct_address + self.registers.Y as u16;
+                let indirect_address = direct_address + self.registers.y as u16;
                 Some(indirect_address)
             }
             AddressingMode::Relative => {
                 let offset: i8 = i8::from_twos_complement_bits(self.read_current_byte());
 
-                Some(self.registers.Pc.wrapping_add_signed(offset.into()))
+                Some(self.registers.pc.wrapping_add_signed(offset.into()))
             }
             AddressingMode::Immediate | AddressingMode::Accumulator | AddressingMode::Implied => {
                 None
@@ -143,7 +143,7 @@ impl Cpu {
         match self.current_instruction?.mode {
             AddressingMode::Implied => None,
             AddressingMode::Immediate => Some(self.read_current_byte()),
-            AddressingMode::Accumulator => Some(self.registers.Acc),
+            AddressingMode::Accumulator => Some(self.registers.a),
             _ => {
                 // Previous arms prevent get_operand_address from returning None
                 let address = self.get_operand_address()?;
@@ -161,7 +161,7 @@ impl Cpu {
 
         let operand = self.get_operand_value();
 
-        self.registers.Pc += 1;
+        self.registers.pc += 1;
 
         log::debug!(
             "Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}",
@@ -172,7 +172,7 @@ impl Cpu {
         );
 
         if !current_instruction.is_jump() {
-            self.registers.Pc += current_instruction.mode.operand_size();
+            self.registers.pc += current_instruction.mode.operand_size();
         }
 
         self.execute_instruction(&current_instruction);
@@ -185,43 +185,43 @@ impl Cpu {
     }
 
     fn push_byte(&mut self, value: u8) {
-        if self.registers.Sp == 0 {
+        if self.registers.sp == 0 {
             panic!("Stack overflow");
         }
 
-        self.registers.Sp -= 1;
+        self.registers.sp -= 1;
 
-        self.memory.write_byte(self.registers.Sp as u16 + 0x100, value);
+        self.memory.write_byte(self.registers.sp as u16 + 0x100, value);
     }
 
     fn push_short(&mut self, value: u16) {
-        if self.registers.Sp == 0 {
+        if self.registers.sp == 0 {
             panic!("Stack overflow");
         }
 
-        self.registers.Sp -= 2;
+        self.registers.sp -= 2;
 
-        self.memory.write_short(self.registers.Sp as u16 + 0x100, value);
+        self.memory.write_short(self.registers.sp as u16 + 0x100, value);
     }
 
     fn pop_byte(&mut self) -> u8 {
-        if self.registers.Sp == 0xFF {
+        if self.registers.sp == 0xFF {
             panic!("Stack underflow");
         }
 
-        let value = self.memory.read_byte(self.registers.Sp as u16 + 0x100);
-        self.registers.Sp += 1;
+        let value = self.memory.read_byte(self.registers.sp as u16 + 0x100);
+        self.registers.sp += 1;
 
         value
     }
 
     fn pop_short(&mut self) -> u16 {
-        if self.registers.Sp >= 0xFE {
+        if self.registers.sp >= 0xFE {
             panic!("Stack underflow");
         }
 
-        let value = self.memory.read_short(self.registers.Sp as u16 + 0x100);
-        self.registers.Sp += 2;
+        let value = self.memory.read_short(self.registers.sp as u16 + 0x100);
+        self.registers.sp += 2;
 
         value
     }
@@ -230,7 +230,7 @@ impl Cpu {
         let new_pc = self.get_operand_address().expect("PC offset should be valid");
 
         if condition {
-            self.registers.Pc = new_pc;
+            self.registers.pc = new_pc;
         }
     }
 
@@ -238,8 +238,8 @@ impl Cpu {
         let vh = u16::from(value >> 4);
         let vl = u16::from(value & 0xF);
 
-        let al = u16::from(self.registers.Acc & 0xF);
-        let ah = u16::from(self.registers.Acc >> 4);
+        let al = u16::from(self.registers.a & 0xF);
+        let ah = u16::from(self.registers.a >> 4);
 
         let carry = self.registers.flags.get(Flag::Carry) as u8;
 
@@ -260,7 +260,7 @@ impl Cpu {
 
         let sum: u8 = ((sum_h as u8) << 4) | (sum_l as u8);
 
-        self.registers.Acc = sum;
+        self.registers.a = sum;
 
         self.registers.flags.set(Flag::Carry, carry_out);
     }
@@ -271,13 +271,13 @@ impl Cpu {
 
         let mut carry_out = false;
 
-        let sum = u16::from(self.registers.Acc) + value + carry;
+        let sum = u16::from(self.registers.a) + value + carry;
 
         if sum > 255 {
             carry_out = true
         }
 
-        self.registers.Acc = sum as u8;
+        self.registers.a = sum as u8;
 
         self.registers.flags.set(Flag::Carry, carry_out);
     }
@@ -300,10 +300,10 @@ impl Cpu {
     pub fn ora(&mut self) {
         let operand = self.get_operand_value().expect("Could not get operand");
 
-        self.registers.Acc = self.registers.Acc | operand;
+        self.registers.a = self.registers.a | operand;
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn kil(&mut self) {
@@ -331,7 +331,7 @@ impl Cpu {
     }
 
     pub fn jsr(&mut self) {
-        self.push_short(self.registers.Pc + 1);
+        self.push_short(self.registers.pc + 1);
 
         self.branch_if(true);
     }
@@ -339,10 +339,10 @@ impl Cpu {
     pub fn and(&mut self) {
         let value = self.get_operand_value().expect("Could not get operand value");
 
-        self.registers.Acc = self.registers.Acc & value;
+        self.registers.a = self.registers.a & value;
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn bit(&mut self) {
@@ -351,7 +351,7 @@ impl Cpu {
         self.registers.flags.set(Flag::Negative, get_bit(value, Flag::Negative as u8));
         self.registers.flags.set(Flag::Overflow, get_bit(value, Flag::Overflow as u8));
 
-        self.update_zero_flag(value & self.registers.Acc);
+        self.update_zero_flag(value & self.registers.a);
     }
 
     pub fn rol(&mut self) {
@@ -381,10 +381,10 @@ impl Cpu {
     pub fn eor(&mut self) {
         let value = self.get_operand_value().expect("Could not get operand value");
 
-        self.registers.Acc = self.registers.Acc ^ value;
+        self.registers.a = self.registers.a ^ value;
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn lsr(&mut self) {
@@ -392,13 +392,13 @@ impl Cpu {
     }
 
     pub fn pha(&mut self) {
-        self.push_byte(self.registers.Acc);
+        self.push_byte(self.registers.a);
     }
 
     pub fn jmp(&mut self) {
         let new_pc = self.get_operand_address().expect("New address should be valid");
 
-        self.registers.Pc = new_pc;
+        self.registers.pc = new_pc;
     }
 
     pub fn bvc(&mut self) {
@@ -412,11 +412,11 @@ impl Cpu {
     pub fn rts(&mut self) {
         let return_address = self.pop_short() + 1;
 
-        self.registers.Pc = return_address;
+        self.registers.pc = return_address;
     }
 
     pub fn adc(&mut self) {
-        let acc_before = self.registers.Acc;
+        let acc_before = self.registers.a;
         let carry = u8::from(self.registers.flags.get(Flag::Carry));
         let mut value = self.get_operand_value().expect("Should get a valid operand");
 
@@ -428,14 +428,14 @@ impl Cpu {
             self.add_binary(value);
         }
 
-        let acc_after = self.registers.Acc;
+        let acc_after = self.registers.a;
 
         let did_overflow = ((value ^ acc_after) & (acc_before ^ acc_after) & 0x80) != 0;
 
         self.registers.flags.set(Flag::Overflow, did_overflow);
 
-        self.update_negative_flag(self.registers.Acc);
-        self.update_zero_flag(self.registers.Acc);
+        self.update_negative_flag(self.registers.a);
+        self.update_zero_flag(self.registers.a);
     }
 
     pub fn ror(&mut self) {
@@ -443,10 +443,10 @@ impl Cpu {
     }
 
     pub fn pla(&mut self) {
-        self.registers.Acc = self.pop_byte();
+        self.registers.a = self.pop_byte();
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn bvs(&mut self) {
@@ -460,33 +460,33 @@ impl Cpu {
     pub fn sta(&mut self) {
         let address = self.get_operand_address().expect("Could not get operand");
 
-        self.memory.write_byte(address, self.registers.Acc);
+        self.memory.write_byte(address, self.registers.a);
     }
 
     pub fn sty(&mut self) {
         let address = self.get_operand_address().expect("Could not get operand");
 
-        self.memory.write_byte(address, self.registers.Y);
+        self.memory.write_byte(address, self.registers.y);
     }
 
     pub fn stx(&mut self) {
         let address = self.get_operand_address().expect("Could not get operand");
 
-        self.memory.write_byte(address, self.registers.Y);
+        self.memory.write_byte(address, self.registers.y);
     }
 
     pub fn dey(&mut self) {
-        self.registers.Y = self.registers.Y - 1;
+        self.registers.y = self.registers.y - 1;
 
-        self.update_zero_flag(self.registers.Y);
-        self.update_negative_flag(self.registers.Y);
+        self.update_zero_flag(self.registers.y);
+        self.update_negative_flag(self.registers.y);
     }
 
     pub fn txa(&mut self) {
-        self.registers.Acc = self.registers.X;
+        self.registers.a = self.registers.x;
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn bcc(&mut self) {
@@ -494,20 +494,20 @@ impl Cpu {
     }
 
     pub fn tya(&mut self) {
-        self.registers.Acc = self.registers.Y;
+        self.registers.a = self.registers.y;
 
-        self.update_zero_flag(self.registers.Acc);
-        self.update_negative_flag(self.registers.Acc);
+        self.update_zero_flag(self.registers.a);
+        self.update_negative_flag(self.registers.a);
     }
 
     pub fn txs(&mut self) {
-        self.registers.Sp = self.registers.X;
+        self.registers.sp = self.registers.x;
     }
 
     pub fn ldy(&mut self) {
         let operand = self.get_operand_value().expect("Could not get operand");
 
-        self.registers.Y = operand;
+        self.registers.y = operand;
 
         self.update_zero_flag(operand);
         self.update_negative_flag(operand);
@@ -516,7 +516,7 @@ impl Cpu {
     pub fn lda(&mut self) {
         let operand = self.get_operand_value().expect("Could not get operand");
 
-        self.registers.Acc = operand;
+        self.registers.a = operand;
 
         self.update_zero_flag(operand);
         self.update_negative_flag(operand);
@@ -525,24 +525,24 @@ impl Cpu {
     pub fn ldx(&mut self) {
         let operand = self.get_operand_value().expect("Could not get operand");
 
-        self.registers.X = operand;
+        self.registers.x = operand;
 
         self.update_zero_flag(operand);
         self.update_negative_flag(operand);
     }
 
     pub fn tay(&mut self) {
-        self.registers.Y = self.registers.Acc;
+        self.registers.y = self.registers.a;
 
-        self.update_zero_flag(self.registers.X);
-        self.update_negative_flag(self.registers.X);
+        self.update_zero_flag(self.registers.x);
+        self.update_negative_flag(self.registers.x);
     }
 
     pub fn tax(&mut self) {
-        self.registers.X = self.registers.Acc;
+        self.registers.x = self.registers.a;
 
-        self.update_zero_flag(self.registers.X);
-        self.update_negative_flag(self.registers.X);
+        self.update_zero_flag(self.registers.x);
+        self.update_negative_flag(self.registers.x);
     }
 
     pub fn bcs(&mut self) {
@@ -554,10 +554,10 @@ impl Cpu {
     }
 
     pub fn tsx(&mut self) {
-        self.registers.X = self.registers.Sp;
+        self.registers.x = self.registers.sp;
 
-        self.update_zero_flag(self.registers.X);
-        self.update_negative_flag(self.registers.X);
+        self.update_zero_flag(self.registers.x);
+        self.update_negative_flag(self.registers.x);
     }
 
     pub fn cpy(&mut self) {
@@ -579,17 +579,17 @@ impl Cpu {
     }
 
     pub fn iny(&mut self) {
-        self.registers.Y = self.registers.Y + 1;
+        self.registers.y = self.registers.y + 1;
 
-        self.update_zero_flag(self.registers.Y);
-        self.update_negative_flag(self.registers.Y);
+        self.update_zero_flag(self.registers.y);
+        self.update_negative_flag(self.registers.y);
     }
 
     pub fn dex(&mut self) {
-        self.registers.X = self.registers.X - 1;
+        self.registers.x = self.registers.x - 1;
 
-        self.update_zero_flag(self.registers.X);
-        self.update_negative_flag(self.registers.X);
+        self.update_zero_flag(self.registers.x);
+        self.update_negative_flag(self.registers.x);
     }
 
     pub fn bne(&mut self) {
@@ -619,10 +619,10 @@ impl Cpu {
     }
 
     pub fn inx(&mut self) {
-        self.registers.X = self.registers.X + 1;
+        self.registers.x = self.registers.x + 1;
 
-        self.update_zero_flag(self.registers.X);
-        self.update_negative_flag(self.registers.X);
+        self.update_zero_flag(self.registers.x);
+        self.update_negative_flag(self.registers.x);
     }
 
     pub fn nop(&mut self) {}

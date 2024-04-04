@@ -80,25 +80,24 @@ impl Flags {
     }
 }
 
-#[allow(non_snake_case)]
 #[derive(Default)]
 pub struct Registers {
-    pub X: u8,   // X Index Register
-    pub Y: u8,   // Y Index Register
-    pub Pc: u16, // Program Counter
-    pub Sp: u8,  // Stack Pointer
-    pub Acc: u8, // Accumulator
+    pub x: u8,   // X Index Register
+    pub y: u8,   // Y Index Register
+    pub pc: u16, // Program Counter
+    pub sp: u8,  // Stack Pointer
+    pub a: u8, // Accumulator
     pub flags: Flags,
 }
 
 impl Display for Registers {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Registers:\n")?;
-        write!(f, "    X   = 0x{0:02X}   = {0} \n", self.X)?;
-        write!(f, "    Y   = 0x{0:02X}   = {0}\n", self.Y)?;
-        write!(f, "    PC  = 0x{0:04X} = {0}\n", self.Pc)?;
-        write!(f, "    SP  = 0x{0:02X} = {0}\n", self.Sp)?;
-        write!(f, "    ACC = 0x{0:02X}   = {0}\n\n", self.Acc)?;
+        write!(f, "    X   = 0x{0:02X}   = {0} \n", self.x)?;
+        write!(f, "    Y   = 0x{0:02X}   = {0}\n", self.y)?;
+        write!(f, "    PC  = 0x{0:04X} = {0}\n", self.pc)?;
+        write!(f, "    SP  = 0x{0:02X} = {0}\n", self.sp)?;
+        write!(f, "    ACC = 0x{0:02X}   = {0}\n\n", self.a)?;
 
         write!(f, "Flags:\n")?;
         write!(f, "{}", indent_all_by(4, self.flags.to_string()))?;
