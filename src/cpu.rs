@@ -294,6 +294,44 @@ impl Cpu {
         self.registers.flags.set(Flag::Overflow, did_overflow);
     }
 
+    fn sbc_bcd(&mut self, value: u8) {
+        let vl = u8::from(value & 0xF);
+        let vh = u8::from(value >> 4);
+
+        let al = u8::from(self.registers.a & 0xF);
+        let ah = u8::from(self.registers.a >> 4);
+
+        let carry = 1 - u8::from(self.registers.flags.get(Flag::Carry));
+        let mut carry_out = true;
+
+        let mut sum_l = al.wrapping_sub(vl).wrapping_sub(carry) & 0xF;
+        let mut sum_h = ah.wrapping_sub(vh) & 0xF;
+
+        if sum_l > 0xA {
+            sum_l -= 6;
+            sum_h = sum_h.wrapping_add(1);
+        }
+
+        if sum_h > 0xA {
+            sum_h -= 6;
+            carry_out = false;
+        }
+
+        let sum: u8 = (sum_h << 4) | sum_l;
+        let sum_binary = self.registers.a.wrapping_sub(value).wrapping_sub(carry);
+
+        let did_overflow = ((value ^ sum_binary) & (self.registers.a ^ sum_binary) & 0x80) != 0;
+
+        self.registers.a = sum;
+
+        self.registers.flags.set(Flag::Carry, carry_out);
+        self.registers.flags.set(Flag::Overflow, did_overflow);
+    }
+
+    fn sbc_binary(&mut self, value: u8) {
+        self.add_binary(!value);
+    }
+
     fn update_zero_flag(&mut self, value: u8) {
         self.registers.flags.set(Flag::Zero, value == 0);
     }
@@ -611,7 +649,16 @@ impl Cpu {
     }
 
     pub fn sbc(&mut self) {
-        todo!()
+        let value = self.get_operand_value().expect("Should get a valid operand");
+
+        if self.registers.flags.get(Flag::Decimal) {
+            self.sbc_bcd(value);
+        } else {
+            self.sbc_binary(value);
+        }
+
+        self.update_negative_flag(self.registers.a);
+        self.update_zero_flag(self.registers.a);
     }
 
     pub fn inc(&mut self) {
