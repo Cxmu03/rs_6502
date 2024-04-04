@@ -245,9 +245,9 @@ impl Cpu {
         let al = u16::from(self.registers.a & 0xF);
         let ah = u16::from(self.registers.a >> 4);
 
-        let carry = self.registers.flags.get(Flag::Carry) as u8;
+        let carry = self.registers.flags.get(Flag::Carry) as u16;
 
-        let mut sum_l: u16 = al + vl + u16::from(carry);
+        let mut sum_l: u16 = al + vl + carry;
         let mut sum_h: u16 = ah + vh;
 
         let mut carry_out = false;
@@ -263,14 +263,19 @@ impl Cpu {
         }
 
         let sum: u8 = ((sum_h as u8) << 4) | (sum_l as u8);
+        let sum_binary: u8 = (u16::from(self.registers.a) + u16::from(value) + carry) as u8;
+
+        let did_overflow = ((value ^ sum_binary) & (self.registers.a ^ sum_binary) & 0x80) != 0;
 
         self.registers.a = sum;
 
         self.registers.flags.set(Flag::Carry, carry_out);
+        self.registers.flags.set(Flag::Overflow, did_overflow);
     }
 
     fn add_binary(&mut self, value: u8) {
         let value = u16::from(value);
+        let acc_before = self.registers.a;
         let carry = u16::from(self.registers.flags.get(Flag::Carry));
 
         let mut carry_out = false;
@@ -283,7 +288,10 @@ impl Cpu {
 
         self.registers.a = sum as u8;
 
+        let did_overflow = (((value as u8) ^ self.registers.a) & (acc_before ^ self.registers.a) & 0x80) != 0;
+
         self.registers.flags.set(Flag::Carry, carry_out);
+        self.registers.flags.set(Flag::Overflow, did_overflow);
     }
 
     fn update_zero_flag(&mut self, value: u8) {
@@ -431,12 +439,6 @@ impl Cpu {
         } else {
             self.add_binary(value);
         }
-
-        let acc_after = self.registers.a;
-
-        let did_overflow = ((value ^ acc_after) & (acc_before ^ acc_after) & 0x80) != 0;
-
-        self.registers.flags.set(Flag::Overflow, did_overflow);
 
         self.update_negative_flag(self.registers.a);
         self.update_zero_flag(self.registers.a);
