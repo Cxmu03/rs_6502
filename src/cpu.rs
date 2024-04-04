@@ -361,7 +361,22 @@ impl Cpu {
     }
 
     pub fn asl(&mut self) {
-        todo!()
+        let mut value = self.get_operand_value().expect("Could not get operand value");
+
+        let carry = value & 0x80 != 0;
+
+        value = value << 1;
+
+        if self.current_instruction.unwrap().mode == AddressingMode::Accumulator {
+            self.registers.a = value;
+        } else {
+            let address = self.get_operand_address().unwrap();
+            self.memory.write_byte(address, value);
+        }
+
+        self.registers.flags.set(Flag::Carry, carry);
+        self.update_negative_flag(value);
+        self.update_zero_flag(value);
     }
 
     pub fn php(&mut self) {
@@ -405,7 +420,23 @@ impl Cpu {
     }
 
     pub fn rol(&mut self) {
-        todo!()
+        let mut value = self.get_operand_value().expect("Could not get operand value");
+
+        let carry_in = self.registers.flags.get(Flag::Carry) as u8;
+        let carry = value & 0x80 != 0;
+
+        value = (value << 1) | carry_in;
+
+        if self.current_instruction.unwrap().mode == AddressingMode::Accumulator {
+            self.registers.a = value;
+        } else {
+            let address = self.get_operand_address().unwrap();
+            self.memory.write_byte(address, value);
+        }
+
+        self.registers.flags.set(Flag::Carry, carry);
+        self.update_negative_flag(value);
+        self.update_zero_flag(value);
     }
 
     pub fn plp(&mut self) {
@@ -438,7 +469,22 @@ impl Cpu {
     }
 
     pub fn lsr(&mut self) {
-        todo!()
+        let mut value = self.get_operand_value().expect("Could not read operand value");
+
+        let carry = value & 0x1 == 1;
+
+        value = value >> 1;
+
+        if self.current_instruction.unwrap().mode == AddressingMode::Accumulator {
+            self.registers.a = value;
+        } else {
+            let address = self.get_operand_address().unwrap();
+            self.memory.write_byte(address, value);
+        }
+
+        self.registers.flags.set(Flag::Carry, carry);
+        self.registers.flags.set(Flag::Negative, false);
+        self.update_zero_flag(value);
     }
 
     pub fn pha(&mut self) {
@@ -479,7 +525,23 @@ impl Cpu {
     }
 
     pub fn ror(&mut self) {
-        todo!()
+        let mut value = self.get_operand_value().expect("Could not read operand value");
+
+        let carry_in = self.registers.flags.get(Flag::Carry) as u8;
+        let carry = value & 0x1 == 1;
+
+        value = (value >> 1) | (carry_in << 7);
+
+        if self.current_instruction.unwrap().mode == AddressingMode::Accumulator {
+            self.registers.a = value;
+        } else {
+            let address = self.get_operand_address().unwrap();
+            self.memory.write_byte(address, value);
+        }
+
+        self.registers.flags.set(Flag::Carry, carry);
+        self.registers.flags.set(Flag::Negative, false);
+        self.update_zero_flag(value);
     }
 
     pub fn pla(&mut self) {
