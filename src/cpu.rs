@@ -466,11 +466,7 @@ impl Cpu {
     }
 
     pub fn adc(&mut self) {
-        let acc_before = self.registers.a;
-        let carry = u8::from(self.registers.flags.get(Flag::Carry));
-        let mut value = self.get_operand_value().expect("Should get a valid operand");
-
-        self.registers.flags.set(Flag::Overflow, false);
+        let value = self.get_operand_value().expect("Should get a valid operand");
 
         if self.registers.flags.get(Flag::Decimal) {
             self.add_bcd(value);
