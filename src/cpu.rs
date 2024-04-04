@@ -309,7 +309,7 @@ impl Cpu {
 
         if sum_l > 0xA {
             sum_l -= 6;
-            sum_h = sum_h.wrapping_add(1);
+            sum_h = sum_h.wrapping_sub(1) & 0xF;
         }
 
         if sum_h > 0xA {
