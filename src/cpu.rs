@@ -350,6 +350,19 @@ impl Cpu {
         self.update_zero_flag(value);
     }
 
+    fn compare_register_with_memory(&mut self, register: &mut u8) {
+        let register_before = *register;
+
+        // Subtraction in cmp should always happen without carry
+        self.registers.flags.set(Flag::Carry, true);
+
+        self.registers.a = *register;
+        self.sbc();
+
+        *register = register_before;
+
+    }
+
     fn update_zero_flag(&mut self, value: u8) {
         self.registers.flags.set(Flag::Zero, value == 0);
     }
@@ -639,11 +652,11 @@ impl Cpu {
     }
 
     pub fn cpy(&mut self) {
-        todo!()
+        self.compare_register_with_memory(&mut self.registers.y);
     }
 
     pub fn cmp(&mut self) {
-        todo!()
+        self.compare_register_with_memory(&mut self.registers.a);
     }
 
     pub fn dec(&mut self) {
@@ -679,7 +692,7 @@ impl Cpu {
     }
 
     pub fn cpx(&mut self) {
-        todo!()
+        self.compare_register_with_memory(&mut self.registers.x);
     }
 
     pub fn sbc(&mut self) {
