@@ -8,6 +8,6 @@ pub trait Memory {
     fn write_byte(&mut self, address: u16, value: u8);
     fn write_short(&mut self, address: u16, value: u16);
 
-    fn load_from_file(&mut self, name: &str) -> Result<u16>;
-    fn load(&mut self, executable: &[u8]) -> Result<u16>;
+    fn load_from_file(&mut self, name: &str, address: u16) -> Result<()>;
+    fn load(&mut self, executable: &[u8], address: u16) -> Result<()>;
 }

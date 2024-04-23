@@ -86,18 +86,18 @@ impl Cpu {
         self.registers.sp = 0xFF;
     }
 
-    pub fn load_executable(&mut self, bytes: &[u8]) -> Result<()> {
-        let start = self.memory.load(bytes)?;
+    pub fn load_executable(&mut self, bytes: &[u8], address: u16) -> Result<()> {
+        let start = self.memory.load(bytes, address)?;
 
-        self.set_reset_vector(start);
+        self.set_reset_vector(address);
 
         Ok(())
     }
 
-    pub fn load_executable_from_file(&mut self, file: &str) -> Result<()> {
-        let start = self.memory.load_from_file(file)?;
+    pub fn load_executable_from_file(&mut self, file: &str, address: u16) -> Result<()> {
+        let start = self.memory.load_from_file(file, address)?;
 
-        self.set_reset_vector(start);
+        self.set_reset_vector(address);
 
         Ok(())
     }

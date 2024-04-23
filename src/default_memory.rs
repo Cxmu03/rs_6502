@@ -51,21 +51,24 @@ impl Memory for DefaultMemory {
         self.data[address as usize + 1] = (value >> 8) as u8;
     }
 
-    fn load(&mut self, executable: &[u8]) -> Result<u16> {
+    fn load(&mut self, executable: &[u8], address: u16) -> Result<()> {
         let (start, end) = Self::verify_executable(executable.len())?;
+        let start = address as usize;
+        let end = start + executable.len();
 
         self.data[start..end].copy_from_slice(executable);
 
-        Ok(start as u16)
+        Ok(())
     }
 
-    fn load_from_file(&mut self, name: &str) -> Result<u16> {
+    fn load_from_file(&mut self, name: &str, address: u16) -> Result<()> {
         let mut file = File::open(name)?;
 
-        let (start, end) = Self::verify_executable(file.metadata()?.len() as usize)?;
+        let start = address as usize;;
+        let end = start + (file.metadata()?.len() as usize);
 
         file.read(&mut self.data[start..end])?;
 
-        Ok(start as u16)
+        Ok(())
     }
 }
