@@ -12,10 +12,21 @@ use crate::memory::Memory;
 use crate::registers::{Flag, Flags, Registers};
 use crate::util::{get_bit, FromTwosComplementBits};
 
+#[derive(PartialEq, Debug)]
+pub enum Voltage {
+    Low,
+    High,
+}
+
 #[derive(Debug)]
 pub(crate) enum Operand {
     Byte(u8),
     Short(u16),
+}
+
+enum Interrupt {
+    Maskable,
+    NonMaskable,
 }
 
 pub struct Cpu<Memory = DefaultMemory> {
@@ -23,6 +34,8 @@ pub struct Cpu<Memory = DefaultMemory> {
     pub memory: Memory,
     pub cycles: u32,
     pub current_instruction: Option<&'static Instruction>,
+    irq_line: Voltage,
+    nmi_edge: bool,
 }
 
 impl Display for Cpu {
@@ -52,6 +65,8 @@ impl Cpu {
             memory: Memory::new(),
             cycles: 0,
             current_instruction: None,
+            irq_line: Voltage::High,
+            nmi_edge: false,
         };
 
         cpu.init_registers();
@@ -157,6 +172,26 @@ impl Cpu {
         }
     }
 
+    pub fn set_irq_line(&mut self, state: Voltage) {
+        self.irq_line = state;
+    }
+
+    fn handle_interrupt(&mut self, typ: Interrupt) {
+        let vector_location: u16 = match typ {
+            Interrupt::Maskable => 0xFFFA,
+            Interrupt::NonMaskable => 0xFFFE,
+        };
+
+        let isr_address = self.memory.read_short(vector_location);
+
+        self.push_short(self.registers.pc);
+        self.push_byte(self.registers.flags.0);
+
+        self.cycles += 7;
+
+        self.registers.pc = isr_address;
+    }
+
     pub fn step(&mut self) {
         let opcode: u8 = self.read_current_byte();
         let current_instruction = &INSTRUCTIONS[opcode as usize];
@@ -167,8 +202,8 @@ impl Cpu {
 
         self.registers.pc += 1;
 
-        log::debug!(
-            "Read instruction {:?} with opcode {:02X} ({:?}) and operand {:?}",
+        log::trace!(
+            "Executing instruction {:?} with opcode {:02X} ({:?}) and operand {:?}",
             current_instruction.instruction_type,
             current_instruction.opcode,
             current_instruction.mode,
@@ -182,6 +217,17 @@ impl Cpu {
         self.execute_instruction(&current_instruction);
 
         self.cycles += current_instruction.cycles as u32;
+
+        if self.nmi_edge == true {
+            self.handle_interrupt(Interrupt::NonMaskable);
+            return;
+        }
+
+        if self.irq_line == Voltage::Low
+            && self.registers.flags.get(Flag::InterruptDisable) == false
+        {
+            self.handle_interrupt(Interrupt::Maskable);
+        }
     }
 
     fn execute_instruction(&mut self, instruction: &Instruction) {
@@ -288,7 +334,8 @@ impl Cpu {
 
         self.registers.a = sum as u8;
 
-        let did_overflow = (((value as u8) ^ self.registers.a) & (acc_before ^ self.registers.a) & 0x80) != 0;
+        let did_overflow =
+            (((value as u8) ^ self.registers.a) & (acc_before ^ self.registers.a) & 0x80) != 0;
 
         self.registers.flags.set(Flag::Carry, carry_out);
         self.registers.flags.set(Flag::Overflow, did_overflow);
@@ -374,7 +421,9 @@ impl Cpu {
     }
 
     pub fn brk(&mut self) {
-        todo!()
+        self.registers.flags.set(Flag::Break, true);
+        self.registers.pc += 1;
+        self.handle_interrupt(Interrupt::Maskable);
     }
 
     pub fn ora(&mut self) {
@@ -391,12 +440,7 @@ impl Cpu {
     }
 
     pub fn asl(&mut self) {
-        self.replace_accumulator_or_memory_with_carry(|value, _| {
-            (
-                value << 1,
-                value & 0x80 != 0
-            )
-        })
+        self.replace_accumulator_or_memory_with_carry(|value, _| (value << 1, value & 0x80 != 0))
     }
 
     pub fn php(&mut self) {
@@ -441,10 +485,7 @@ impl Cpu {
 
     pub fn rol(&mut self) {
         self.replace_accumulator_or_memory_with_carry(|value, carry_in| {
-            (
-                (value << 1) | carry_in,
-                value & 0x80 != 0
-            )
+            ((value << 1) | carry_in, value & 0x80 != 0)
         })
     }
 
@@ -465,7 +506,9 @@ impl Cpu {
     }
 
     pub fn rti(&mut self) {
-        todo!()
+        self.registers.flags = Flags(self.pop_byte());
+        self.registers.flags.set(Flag::Break, false);
+        self.registers.pc = self.pop_short();
     }
 
     pub fn eor(&mut self) {
@@ -478,12 +521,7 @@ impl Cpu {
     }
 
     pub fn lsr(&mut self) {
-        self.replace_accumulator_or_memory_with_carry(|value, _| {
-            (
-                value >> 1,
-                value & 1 == 1
-            )
-        })
+        self.replace_accumulator_or_memory_with_carry(|value, _| (value >> 1, value & 1 == 1))
     }
 
     pub fn pha(&mut self) {
@@ -525,10 +563,7 @@ impl Cpu {
 
     pub fn ror(&mut self) {
         self.replace_accumulator_or_memory_with_carry(|value, carry_in| {
-            (
-                (value >> 1) | (carry_in << 7),
-                value & 1 == 1
-            )
+            ((value >> 1) | (carry_in << 7), value & 1 == 1)
         })
     }
 
